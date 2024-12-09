@@ -1,0 +1,42 @@
+[
+  {
+    "version": "1.0.4",
+    "items": [
+      "Tidied advisories, including for B&B",
+      "Small changes toward supporting PA-less map files"
+    ]
+  },
+  {
+    "version": "1.0.3",
+    "items": [
+      "Added additional breakthrough advisories",
+      "Fixed UI bug showing visual only 'game variant'",
+      "Added cursor over to UI elements, renamed UI elements",
+      "Changed JavaScript functions"
+    ]
+  },
+  {
+    "version": "1.0.2",
+    "items": [
+      "Added faux breakthrough section informing of planetary anomalies",
+      "Updated map files",
+      "Supporting 13th Breakthrough"
+    ]
+  },
+  {
+    "version": "1.0.1",
+    "items": [
+      "Changed site loading to be cache-able",
+      "Fixed failing to load with empty table contents causing an infinite loading icon"
+    ]
+  },
+  {
+    "version": "1.0.0",
+    "items": [
+      "Changed website visuals to correctly convey the hosting and maintenence situation",
+      "Changed disaster/resource hover visual elements for greater clarity",
+      "Search changes to prevent excessive requests",
+      "Added caching to speed-up interaction"
+    ]
+  }
+]
