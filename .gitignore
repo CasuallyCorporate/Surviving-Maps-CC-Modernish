@@ -1,0 +1,5 @@
+# ignore all CMAKE "/out" folders
+out/
+
+# Ignore all visual studio "/.vs" folders
+.vs/
