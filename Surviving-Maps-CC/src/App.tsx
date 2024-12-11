@@ -7,11 +7,6 @@ import survivingLogo from '/Logo.png'
 import appMain from './tscomponents/appMain'
 import Modal from 'react-modal';
 
-interface requestReceive{
-  Response?: string;
-  PageData?: string;
-}
-
 Modal.setAppElement('#Info');
 
 function App() {
