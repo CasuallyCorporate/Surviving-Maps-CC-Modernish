@@ -69,8 +69,6 @@ export enum Breakthrough{
     ZERO_SPACE_COMPUTING = "Zero-Space Computing"
 };
 
-export const BreakthroughList = Object.values(Breakthrough);
-
 export type BreakthroughSystem = {
     breakthrough: Breakthrough;
     system: string;
@@ -337,15 +335,6 @@ export const listMapNames: MapNameSystem[] = [
     {system: "BlankBigTerraceCMix_20", mapName: "Terrace Mix 20"},
 ] as const;
 
-
-export enum ButtonState {
-    IDLE = "btn-light",
-    SEARCHING = "btn-dark",
-    SUCCESS = "btn-success",
-    FAILED = "btn-danger",
-    CHANGED = "btn-warning"
-}
-
 /* Simple Requests */
 export interface BreakthroughRequest {
     all: string[];
@@ -439,10 +428,6 @@ export interface PageResponse {
     Response?: string;
 }
 
-export interface SiteRequest {
-    VariantSystem: string;
-    SiteID: number;
-}
 export interface SiteRequest {
     VariantSystem: string;
     SiteID: number;

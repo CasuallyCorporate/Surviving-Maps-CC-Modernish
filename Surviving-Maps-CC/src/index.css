@@ -22,19 +22,16 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
   text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
 }
 
 body {
   margin: 0;
   display: flex;
   place-items: center;
-  min-width: 320px;
+  width: 100vw;
   min-height: 100vh;
+  overflow-x: hidden;
   flex-direction: column;
 }
 
@@ -42,17 +39,22 @@ h1 {
   font-size: 3.2em;
   line-height: 1.1;
 }
+h6 {
+  margin-bottom: 0;
+}
+
+hr {
+  margin: 1rem 0;
+  width: 100%;
+}
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: rgb(33 37 41);
-  cursor: pointer;
-  transition: border-color 0.25s;
+  color: black;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  background: linear-gradient(to bottom, rgba(230, 230, 230, 0.2) 0%, rgba(0, 0, 0, 0.2) 100%);
+  box-sizing: border-box;
+  border-radius: 4px;
+  margin: 1rem auto;
 }
 button:hover {
   border-color: #646cff;
@@ -60,6 +62,10 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
+}
+
+.btn {
+  margin:0;
 }
 
 .navbar p {
@@ -97,9 +103,6 @@ button:focus-visible {
   justify-items: center;
   text-align: center;
 }
-#ModalContent hr, #AppMain hr {
-  width: 100%;
-}
 #ModalContent h2 {
   margin-top: 2vh;
 }
@@ -115,6 +118,7 @@ button:focus-visible {
   border-width: 3px;
   border-color: grey;
   border-image: linear-gradient(to bottom, rgba(255,255,255, 0) 0%, rgba(128, 128, 128, 0.4) 30%, rgba(128, 128, 128, 0.4) 70%, rgba(255,255,255,0) 100%) 1;
+  padding-bottom: 5vh;
 }
 
 .search h3, .search a {
@@ -126,18 +130,106 @@ button:focus-visible {
   cursor: pointer;
 }
 .search a {
+  color: #242424;
+}
+
+.search #singleSelect {
+  color: black;
+}
+
+/* SEARCH COMPONENTS */
+#SearchComponents {
+  display: flex;
+  justify-content: center;
+  justify-items: center;
+
+  margin: 0.2vh auto;
+}
+
+#SearchComponents > div, #SearchComponents > div > #Dropdown {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+#SearchComponents > div > #WholeWidth {
+  width: 100%;
+}
+
+#RowTitle {
   display: flex;
 }
 
+.DropComplex {
+  flex-direction: column;
+  justify-content: left;
+}
+
+/* Less/More */
+.LessMoreButton {
+  display: flex;
+  flex-direction: row;
+  padding: 0.1rem;
+}
+.LessMoreButton #than {
+  margin: auto 0 auto 0.5rem;
+}
+.LessMore {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  height: 3vh;
+  width: 2.6rem;
+}
+.LessMore p {
+  margin: auto 0;
+}
+.LessMore .strikeup, .LessMore .strikedown {
+  text-decoration: line-through;
+  position: absolute;
+  margin: 0;
+}
+.LessMore .strikeup {
+  top: -0.6vh;
+  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.4), rgba(0,0,0,0));
+}
+.LessMore .strikedown {
+  bottom: -0.6vh;
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0));
+}
+
+/* SEARCH ROW */
+.SearchRow h5 {
+  /* top right bottom left */
+  margin: 0.25rem 0 0 1rem;
+}
+.SearchRow hr {
+  margin: 0.25rem auto;
+}
+
+/* SEARCH MultiSelects */
+.singleChip .custom-close {
+  display: flex;
+}
+
+/* SEARCH MultiSelects Placeholder pointer fix */
+.multiselect-container .search-wrapper .searchBox {
+  pointer-events: none;
+}
+
 /* SEARCH SECTION SHAPES */
-.square, .triangle, .circle {
+.rectangle, .triangle, .circle {
   aspect-ratio: 1/1;
-  min-height: 1rem;
   margin: auto 0;
   margin-right:0.25rem;
 }
-.square, .circle {
+.rectangle, .circle {
   background-color: #242424;
+  width: 1rem;
+}
+.rectangle {
+  aspect-ratio: 1/0.25;
 }
 .triangle {
   width: 0;
@@ -150,16 +242,415 @@ button:focus-visible {
   border-radius: 50%;
 }
 
+/* SEARCH ROW */
+#Search {
+  display: flex;
+  justify-content: center;
+}
+
+/* SORTING ROW */
+#Sorting a {
+  color: rgb(13, 110, 253);
+}
+#Sorting {
+  justify-content: center;
+  align-items: stretch;
+}
+#Sorting > a {
+  cursor: pointer;
+  user-select: none;
+  align-content: center;
+  text-align: center;
+  border-style: none none none solid;
+  border-width: 3px;
+  border-color: grey;
+  border-image: linear-gradient(to top, rgba(255,255,255, 0) 0%, rgba(128, 128, 128, 0.4) 30%, rgba(128, 128, 128, 0.4) 70%, rgba(255,255,255,0) 100%) 1;
+}
+#Sorting .stickDown {
+  align-content: end;
+}
+#Sorting > a > div {
+  margin: 0 auto;
+}
+#Sorting a:first-child {
+  border: none;
+}
+#Sorting a:hover {
+  background: rgba(230, 230, 230, 0.5);
+}
+#Sorting .SelectedUp, #Sorting .SelectedDown {
+  position: relative;
+  background: linear-gradient(to bottom, rgba(230, 230, 230, 0.2) 0%, rgba(0, 0, 0, 0.2) 100%) !important;
+}
+#Sorting > .SelectedUp > .Chevron {
+  display: block;
+  position: absolute;
+  right: 10%;
+  top: 10%;
+  transform: rotate(-135deg);
+}
+#Sorting > .SelectedDown > .Chevron {
+  display: block;
+  position: absolute;
+  right: 10%;
+  bottom: 10%;
+  transform: rotate(45deg);
+}
+
+/* SORTING CHEVRON */
+.Chevron {
+  display: none;
+  border-right:
+      4px solid rgb(20, 140, 230);
+  border-bottom:
+      4px solid rgb(20, 140, 230);
+  width: 1vw;
+  height: 1vw;
+}
+
+/* Icons */
+.icon-resource {
+  background-repeat: no-repeat;
+  background-position: top;
+  aspect-ratio: 1/1;
+  width: 20px;
+  background-size: 20px;
+}
+
+.icon-devils {
+  background-image: url(/icons/dust_d.png);
+}
+.icon-storms {
+  background-image: url(/icons/dust_s.png);
+}
+.icon-meteors {
+  background-image: url(/icons/meteors.png);
+}
+.icon-cold {
+  background-image: url(/icons/cold.png);
+}
+
+.icon-concrete {
+  background-image: url(/icons/concrete.png);
+}
+.icon-water {
+  background-image: url(/icons/water.png);
+}
+.icon-metal {
+  background-image: url(/icons/metals.png);
+}
+.icon-raremetal {
+  background-image: url(/icons/raremetals.png);
+}
+
+/* RESULTS */
+#Results {
+  justify-content: center;
+  align-items: stretch;
+
+  flex-direction: column;
+}
+#Results > p {
+  text-align: center;
+}
+#Results > a {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  flex-direction: row;
+  cursor: pointer;
+  user-select: none;
+}
+.SiteItem {
+  text-align: center;
+
+  margin: 0;
+  padding: 0;
+  color: black;
+}
+#Results > .siteSelected > div {
+  background-color: rgb(140, 140, 140);
+}
+.SiteItem > div {
+  background-color: rgb(212, 212, 212);
+  padding: 0.1rem 0;
+}
+.SiteItem:nth-child(odd) > div {
+  background-color: rgb(235, 235, 235);
+}
+.SiteItem:hover > div {
+  background-color: rgb(170, 170, 170);
+}
+.loading-icon {
+  color: darkred;
+  margin: 0 auto;
+}
+#PageNav {
+  display: flex;
+  justify-items: start;
+  margin-bottom: 1rem;
+}
+#PageNav #Page {
+  font-weight: bold;
+  margin-right: 1rem;
+}
+#PageNav #PageNavButtons a {
+  font-weight: bold;
+  margin-right: 1rem;
+  color: rgb(13, 110, 253);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ItemsView */
+#Items-View {
+  justify-content: center;
+  align-items: center;
+}
+
+/* --All */
+#Items-View .Map img {
+  aspect-ratio: 16/9;
+  width: 100%;
+  height: min-content;
+}
+
+/* -Headings */
+#Items-View .DisplayItem .Headings h4 {
+  margin: 0;
+}
+#Items-View .DisplayItem .Headings a {
+  display: flex;
+  cursor: pointer;
+  margin-left: 1rem;
+  border-color: black;
+}
+#Items-View .DisplayItem .Headings a > p {
+  margin: auto 0.6rem;
+}
+
+/* -DisplayItem */
+#Items-View .DisplayItem .Display {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+#Items-View .DisplayItem .Headings {
+  display: flex;
+  flex-direction: row;
+}
+#Items-View .DisplayItem .MapData {
+  padding: 0 1rem;
+}
+#Items-View .DisplayItem .icons > div {
+  justify-content: center;
+  text-align: center;
+}
+#Items-View .DisplayItem .icons h6 {
+  margin: 0.5rem;
+}
+#Items-View .DisplayItem .icon-resource {
+  margin-bottom: -15px;
+  padding-top: 15px;
+  text-align: center;
+}
+#Items-View .DisplayItem .BreakthroughData {
+  text-align: center;
+}
+#Items-View .DisplayItem .BreakthroughData p {
+  margin: 0;
+}
+
+#Items-View > .emptyView {
+  padding: 1rem 0;
+  margin: 0 1rem 1rem 1rem;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+
+  border: 1px solid #242424;
+}
+.emptyView > p {
+  margin: 0;
+}
+
+/* -viewItemsList */
+#Items-View > .Utilities {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+.Utilities > .Utility {
+  width: 30%;
+  text-align: center;
+  border: 1px solid #242424;
+  border-style: solid solid none solid ;
+  border-radius: 10px 10px 0 0;
+  padding: 0.5rem 0;
+}
+.Utilities > .UtilityToggle {
+  display: flex;
+  align-items: end;
+  margin: 0 1rem;
+}
+.UtilityToggle > a {
+  margin: 0;
+  padding: 0 1rem;
+  border: 1px solid #242424;
+  transform: perspective(20px) rotateX(10deg);
+  cursor: pointer;
+  user-select: none;
+}
+.Utilities > div > .btn {
+  border: 2px solid rgba(230, 230, 230, 0.6);
+}
+.Utilities p {
+  margin: auto 0;
+}
+#Items-View .Thumbnails {
+  display: flex;
+  flex-direction: row;
+  align-items: start;
+  overflow-y: hidden;
+  overflow-x: auto;
+}
+/* every thumbnail */
+#Items-View .Thumbnails > div {
+  border: 2px solid black;
+  margin-right: 5px;
+  border-radius: 10px;
+  padding: 0.4rem 0;
+}
+.siteThumb .Headings {
+  display: flex;
+  position: relative;
+  height: 2.6rem;
+}
+.siteThumb .Headings > h6 {
+  padding-left: 10px;
+  width: 100%;
+}
+.siteThumb .Headings > a {
+  cursor: pointer;
+  pointer-events:auto;
+  padding: 0 10px;
+  user-select: none;
+}
+.siteThumb .body {
+  display: flex;
+  user-select: none;
+}
+.siteThumb .body > .MapThumb {
+  width: 60%;
+}
+.siteThumb .MapThumb > img {
+  width: 100%;
+}
+/* css change background for parent on child hover stuff */
+.siteThumb {
+  pointer-events: none;
+  margin-bottom: 0.2rem;
+}
+.siteThumb:hover {
+  background: rgba(230, 230, 230, 0.8);
+}
+.siteThumb > .body {
+  pointer-events: auto;
+  cursor: pointer;
+  border-top: 2px solid black;
+}
+.siteThumb .body > .DisastersResources {
+  width: 40%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  color: black;
+}
+.DisastersResources > div {
+  width: 40px;
+}
+.siteThumb .DisastersResources > div > .icon-resource {
+  background-position: left;
+  margin-right: -25px;
+  padding-left: 25px;
+}
+
+/* --addCoord */
+.addCoord .multiselect-container .searchWrapper {
+  border-style: none none solid none;
+  border-radius: 0;
+}
+.addCoord .direction {
+  display: flex;
+  flex-direction: row;
+}
+.CoordInput {
+  display: flex;
+  flex-direction: column;
+}
+.CoordInput > .Dirs {
+  display: flex;
+  flex-direction: row;
+}
+.CoordInput > .Dirs > .direction {
+  width: 50%;
+}
+.addCoord .direction {
+  justify-content: space-evenly;
+}
+.addCoord .Radio {
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+}
+.addCoord .Radio > label {
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+}
+.addCoord .Radio > label > input {
+  margin: 0;
+}
+.addCoord .direction > input {
+  max-width: 80%;
+}
+.CoordInput, .CoordInput > .tool-tipped {
+  margin-top: 0.4rem;
+}
+.addCoord input {
+  color: black;
+  background-color: inherit;
+}
+
+/* --ListFromBrowser */
+.ListFromBrowser {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
 /* TOOLTIP */
+.tool-tipped {
+  position: relative;
+}
 .tool-tipped > .hover-tooltip {
   display: none;
-  position: relative;
-  top: 20px;
-  width: 100px;
+  position: absolute;
+  top: -2.5rem;
   background: white;
   border: 0.1rem solid black;
   box-shadow: 0.3rem 0.3rem 0.3rem grey;
 }
 .hover-tooltip {
   color: black;
+}
+.tool-tipped:hover > .hover-tooltip {
+  display: block;
+  text-align: center;
+  z-index: 4;
 }

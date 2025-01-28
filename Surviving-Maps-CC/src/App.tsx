@@ -25,15 +25,12 @@ function App() {
   const APIURL: string = "/motd";
 
   async function fetchModPage(apiURL: string, pageStr: string) {
-    console.log("fetching Modal");
 
     if (pageStr == modalLastFetchName) {
       if (pageStr == "") {
-        console.log("page name empty. Fetch cancelled");
         return;
       }
       if (modalPageContents != "") {
-        console.log("last page == this request, and current contents not empty. Fetch cancelled");
         return;
       }
     }
@@ -49,7 +46,6 @@ function App() {
       let pageson = await response.json();
       setModalPageContents(pageson[1].PageData);
       setModalLastFetchName(pageStr);
-      console.log("Modal fetch succeeded");
       return;
     }
 
@@ -57,14 +53,12 @@ function App() {
       // Failed, from server
       setModalPageContents("<h5>Server error</h5");
       setModalLastFetchName("");
-      console.log("Modal fetch failed: Server related error");
       return;
     }
 
     // Fail through
     setModalPageContents("<h5>Unknown error</h5");
     setModalLastFetchName("");
-    console.log("Modal fetch failed: Response=: " + response.statusText);
     return;
   }
 
@@ -85,7 +79,6 @@ function App() {
 
   useEffect(() => {
     if(!modalIsOpen) {
-      console.log("Modal not open");
       return;
     }
 

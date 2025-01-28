@@ -7,9 +7,20 @@ export default defineConfig({
   server: {
     proxy: {
       '/motd': {
-        target: 'http://localhost:8000/endpoint',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/motd/,''),
+        target: 'http://localhost:8000',
+        changeOrigin: true
+      },
+      '/page': {
+        target: 'http://localhost:8000',
+        changeOrigin: true
+      },
+      '/site': {
+        target: 'http://localhost:8000',
+        changeOrigin: true
+      },
+      '/coord': {
+        target: 'http://localhost:8000',
+        changeOrigin: true
       }
     }
   }

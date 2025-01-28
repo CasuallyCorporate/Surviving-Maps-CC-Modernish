@@ -1,66 +1,59 @@
-import React, { FC ,useState, MutableRefObject } from "react";
+import { MutableRefObject } from "react";
+import { DropComDisaster, DropComMapChallenge, DropComMapLanding, DropComMapName, DropComMapTopography, DropComResource } from "./Dropdowns";
+import { ComplexRequest } from "./SM-Constants";
 
 interface SearchRowProps {
-    collapsed: Boolean;
-    collapses: Boolean;
-    searchType: string;
-    returnStringRef: MutableRefObject<string>;
-    }
+    name: string;
+    returnComplexref: MutableRefObject<ComplexRequest>;
+    searchValueChanged(): any;
+}
 
 export const SearchRow = (props: SearchRowProps) => {
-
-    const [canCollapse, setCollapses] = useState(props.collapses);
-    const [isCollapsed, setCollapsed] = useState(props.collapsed);
-
-    function toggleCollapsed() {       
-        if(!canCollapse){return;};
-        const currentCollapse = isCollapsed;
-        setCollapsed(!currentCollapse);
-        // if not currently collapsed, reset all search items
-    }
-
-    if(isCollapsed){
-        // Collapsed: All items inside will not be shown
-        return (
-            <>
-            <a className="user-select-none" onClick={() => toggleCollapsed()}>
-                <div id="collapseIcon" className={ 
-                    canCollapse ? (isCollapsed? "triangle" : "square") : "circle"
-                    }></div>
-                <h3>{props.searchType}</h3>
-            </a>
-            </>
-        );
-    }
-    
-    // Change depoending on input for each search row type
-    switch(props.searchType) {
-        case "Simple":
+    switch(props.name) {
+        case "Resources":
             return (
                 <>
-                <a className="user-select-none" onClick={() => toggleCollapsed()} >
-                    <div id="collapseIcon" className={ 
-                        canCollapse ? (isCollapsed ? "triangle" : "square") : "circle"
-                        }></div>
-                    <h3>{props.searchType}</h3>
-                </a>
-                <div id="SearchComponents">
-
+                <div className="SearchRow">
+                    <h5>{props.name}</h5>
+                    <hr></hr>
+                    <div id="SearchComponents">
+                    <DropComResource classNames="col-md-3" returnComplexref={props.returnComplexref} selectionChanged={props.searchValueChanged} resource="Water"/>
+                    <DropComResource classNames="col-md-3" returnComplexref={props.returnComplexref} selectionChanged={props.searchValueChanged} resource="Concrete"/>
+                    <DropComResource classNames="col-md-3" returnComplexref={props.returnComplexref} selectionChanged={props.searchValueChanged} resource="Metal"/>
+                    <DropComResource classNames="col-md-3" returnComplexref={props.returnComplexref} selectionChanged={props.searchValueChanged} resource="Rare Metal"/>
+                    </div>
                 </div>
                 </>
             );
             break;
-        case "Complex":
+        case "Disasters":
             return (
                 <>
-                <a className="user-select-none" onClick={() => toggleCollapsed()} >
-                    <div id="collapseIcon" className={ 
-                        canCollapse ? (isCollapsed ? "triangle" : "square") : "circle"
-                        }></div>
-                    <h3>{props.searchType}</h3>
-                </a>
-                <div id="SearchComponents">
-
+                <div className="SearchRow">
+                    <h5>{props.name}</h5>
+                    <hr></hr>
+                    <div id="SearchComponents">
+                    <DropComDisaster classNames="col-md-3" returnComplexref={props.returnComplexref} selectionChanged={props.searchValueChanged} disaster="Meteors"/>
+                    <DropComDisaster classNames="col-md-3" returnComplexref={props.returnComplexref} selectionChanged={props.searchValueChanged} disaster="Cold Waves"/>
+                    <DropComDisaster classNames="col-md-3" returnComplexref={props.returnComplexref} selectionChanged={props.searchValueChanged} disaster="Dust Storms"/>
+                    <DropComDisaster classNames="col-md-3" returnComplexref={props.returnComplexref} selectionChanged={props.searchValueChanged} disaster="Dust Devils"/>
+                    </div>
+                </div>
+                </>
+            );
+            break;
+        case "Map Details":
+            return (
+                <>
+                <div className="SearchRow">
+                    <h5>{props.name}</h5>
+                    <hr></hr>
+                    <div id="SearchComponents">
+                    <DropComMapLanding classNames="col-md-3" returnComplexref={props.returnComplexref} selectionChanged={props.searchValueChanged} />
+                    <DropComMapTopography classNames="col-md-3" returnComplexref={props.returnComplexref} selectionChanged={props.searchValueChanged}  />
+                    <DropComMapName classNames="col-md-3" returnComplexref={props.returnComplexref} selectionChanged={props.searchValueChanged} />
+                    <DropComMapChallenge classNames="col-md-3" returnComplexref={props.returnComplexref} selectionChanged={props.searchValueChanged} />
+                    </div>
                 </div>
                 </>
             );
@@ -68,17 +61,14 @@ export const SearchRow = (props: SearchRowProps) => {
         default:
             return (
                 <>
-                <a className="user-select-none" onClick={() => toggleCollapsed()} >
-                    <div id="collapseIcon" className={ 
-                        canCollapse ? (isCollapsed ? "triangle" : "square") : "circle"
-                        }></div>
-                    <h3>{props.searchType}</h3>
-                </a>
-                <div id="SearchComponents">
-                    <p>You shouldn't be able to read this...</p>
-                    <p>Either something has gone wrong, or you are up to wrong...</p>
+                <div className="SearchRow">
+                    <h5>Error</h5>
+                    <hr></hr>
+                    <div>
+                    Nothing
+                    </div>
                 </div>
                 </>
             );
     }
-};
+}
