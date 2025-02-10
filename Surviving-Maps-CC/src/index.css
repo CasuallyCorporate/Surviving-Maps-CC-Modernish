@@ -16,6 +16,14 @@
   flex: 0 0 100%;
 }
 
+.search-wrapper > input, .search-wrapper > span {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  line-height: inherit;
+  font-size: inherit;
+  margin: 0;
+}
+
 #root:first-child {
   margin-top: 6rem;
 }
@@ -59,8 +67,7 @@ button {
 button:hover {
   border-color: #646cff;
 }
-button:focus,
-button:focus-visible {
+button:focus, button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
@@ -140,20 +147,19 @@ button:focus-visible {
 /* SEARCH COMPONENTS */
 #SearchComponents {
   display: flex;
-  justify-content: center;
+  flex-direction: row;
+  justify-content: space-evenly;
   justify-items: center;
 
   margin: 0.2vh auto;
 }
 
-#SearchComponents > div, #SearchComponents > div > #Dropdown {
+#SearchComponents > .variantSearch {
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-left: 15px;
-  padding-right: 15px;
 }
-#SearchComponents > div > #WholeWidth {
+.variantSearch > div {
   width: 100%;
 }
 
@@ -163,7 +169,34 @@ button:focus-visible {
 
 .DropComplex {
   flex-direction: column;
-  justify-content: left;
+  justify-content: center;
+  text-align: center;
+}
+.DropComplex > * {
+  width: 100%;
+}
+.DropComplex > h6 {
+  margin-bottom: 0.2rem;
+}
+.DropComplex > #Dropdown, .slSearch {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+.slSearch > button {
+  width: 25%;
+}
+.slSearch > div {
+  width: 75%;
+}
+#Dropdown > button
+{
+  width: 30%;
+}
+#Dropdown > div {
+  width: 70%;
 }
 
 /* Less/More */
@@ -171,6 +204,7 @@ button:focus-visible {
   display: flex;
   flex-direction: row;
   padding: 0.1rem;
+  margin: 0;
 }
 .LessMoreButton #than {
   margin: auto 0 auto 0.5rem;
@@ -414,6 +448,12 @@ button:focus-visible {
   width: 100%;
   height: min-content;
 }
+#Items-View > div {
+  margin-top: 1rem;
+}
+#Items-View:first-child {
+margin-top: none;
+}
 
 /* -Headings */
 #Items-View .DisplayItem .Headings h4 {
@@ -482,7 +522,10 @@ button:focus-visible {
 #Items-View > .Utilities {
   display: flex;
   justify-content: center;
-  width: 100%;
+  flex-direction: row;
+  align-content: center;
+  border-bottom: 1px solid #242424;
+  margin: 0 1rem;
 }
 .Utilities > .Utility {
   width: 30%;
@@ -501,6 +544,7 @@ button:focus-visible {
   margin: 0;
   padding: 0 1rem;
   border: 1px solid #242424;
+  border-style: solid solid none solid;
   transform: perspective(20px) rotateX(10deg);
   cursor: pointer;
   user-select: none;

@@ -240,6 +240,43 @@ export const DropComResource = (props: DropdownProps & ResourceProps) => {
 
     function toggleLessMore() {
         setIsLessState(!isLessState);
+        // Set isLessThan
+        if(props.returnComplexref && props.returnComplexref.current.Resources) {
+            switch(props.resource) {
+                case "Water":
+                    if(props.returnComplexref.current.Resources.Water) {
+                        props.returnComplexref.current.Resources.Water = {
+                            ...props.returnComplexref.current.Resources.Water,
+                            isLessThan: !isLessState
+                        }
+                    }
+                    break;
+                case "Concrete":
+                    if(props.returnComplexref.current.Resources.Concrete) {
+                        props.returnComplexref.current.Resources.Concrete = {
+                            ...props.returnComplexref.current.Resources.Concrete,
+                            isLessThan: !isLessState
+                        }
+                    }
+                    break;
+                case "Metal":
+                    if(props.returnComplexref.current.Resources.Metal) {
+                        props.returnComplexref.current.Resources.Metal = {
+                            ...props.returnComplexref.current.Resources.Metal,
+                            isLessThan: !isLessState
+                        }
+                    }
+                    break;
+                case "Rare Metal":
+                    if(props.returnComplexref.current.Resources.RareMetal) {
+                        props.returnComplexref.current.Resources.RareMetal = {
+                            ...props.returnComplexref.current.Resources.RareMetal,
+                            isLessThan: !isLessState
+                        }
+                    }
+                    break;
+            }
+        }
     }
 
     function selectionChanged(selectedList: number[]) {
@@ -280,6 +317,7 @@ export const DropComResource = (props: DropdownProps & ResourceProps) => {
                         props.returnComplexref.current.Resources = undefined;
                     }
                 }
+                props.selectionChanged();
                 return;
             }
             switch(props.resource) {
@@ -342,6 +380,43 @@ export const DropComDisaster = (props: DropdownProps & DisasterProps) => {
 
     function toggleLessMore() {
         setIsLessState(!isLessState);
+        // Set the new isLessThan
+        if(props.returnComplexref && props.returnComplexref.current.Disasters) {
+            switch(props.disaster) {
+                case "Meteors":
+                    if(props.returnComplexref.current.Disasters.Meteors) {
+                        props.returnComplexref.current.Disasters.Meteors = {
+                            ...props.returnComplexref.current.Disasters.Meteors,
+                            isLessThan: !isLessState
+                        }
+                    }
+                    break;
+                case "Cold Waves":
+                    if(props.returnComplexref.current.Disasters.ColdWaves) {
+                        props.returnComplexref.current.Disasters.ColdWaves = {
+                            ...props.returnComplexref.current.Disasters.ColdWaves,
+                            isLessThan: !isLessState
+                        }
+                    }
+                    break;
+                case "Dust Storms":
+                    if(props.returnComplexref.current.Disasters.DustStorms) {
+                        props.returnComplexref.current.Disasters.DustStorms = {
+                            ...props.returnComplexref.current.Disasters.DustStorms,
+                            isLessThan: !isLessState
+                        }
+                    }
+                    break;
+                case "Dust Devils":
+                    if(props.returnComplexref.current.Disasters.DustDevils) {
+                        props.returnComplexref.current.Disasters.DustDevils = {
+                            ...props.returnComplexref.current.Disasters.DustDevils,
+                            isLessThan: !isLessState
+                        }
+                    }
+                    break;
+            }
+        } else { refError("DropComResource:toggleLessMore"); }
     }
 
     function selectionChanged(selectedList: number[]) {
@@ -382,6 +457,7 @@ export const DropComDisaster = (props: DropdownProps & DisasterProps) => {
                         props.returnComplexref.current.Disasters = undefined;
                     }
                 }
+                props.selectionChanged();
                 return;
             }
             switch(props.disaster) {
@@ -441,11 +517,6 @@ export const DropComDisaster = (props: DropdownProps & DisasterProps) => {
 
 /* Specific MAP DETAIL dropdowns */
 export const DropComMapLanding = (props: DropdownProps) => {
-    const [isLessState, setIsLessState] = useState(false);
-
-    function toggleLessMore() {
-        setIsLessState(!isLessState);
-    }
 
     function selectionChanged(selectedList: NamedLandingSystem[]) {
         if(props.returnComplexref) {
@@ -459,6 +530,7 @@ export const DropComMapLanding = (props: DropdownProps) => {
                 if(JSON.stringify(props.returnComplexref.current.Map) === "{}") {
                     props.returnComplexref.current.Map = undefined;
                 }
+                props.selectionChanged();
                 return;
             }
             // Add to complex ref
@@ -482,7 +554,6 @@ export const DropComMapLanding = (props: DropdownProps) => {
         <div className={props.classNames + " DropComplex"}>
             <h6>Named Landing Area</h6>
             <div id="Dropdown">
-                <LessMoreButton isLess={isLessState} clickAction={toggleLessMore} />
                 <Multiselect
                 onKeyPressFn={function noRefCheck(){}}
                 onRemove={selectionChanged}
@@ -499,11 +570,6 @@ export const DropComMapLanding = (props: DropdownProps) => {
 }
 
 export const DropComMapTopography = (props: DropdownProps) => {
-    const [isLessState, setIsLessState] = useState(false);
-
-    function toggleLessMore() {
-        setIsLessState(!isLessState);
-    }
 
     function selectionChanged(selectedList: TopographySystem[]) {
         if(props.returnComplexref) {
@@ -517,6 +583,7 @@ export const DropComMapTopography = (props: DropdownProps) => {
                 if(JSON.stringify(props.returnComplexref.current.Map) === "{}") {
                     props.returnComplexref.current.Map = undefined;
                 }
+                props.selectionChanged();
                 return;
             }
             // Add to complex ref
@@ -540,7 +607,6 @@ export const DropComMapTopography = (props: DropdownProps) => {
         <div className={props.classNames + " DropComplex"}>
             <h6>Topography</h6>
             <div id="Dropdown">
-                <LessMoreButton isLess={isLessState} clickAction={toggleLessMore} />
                 <Multiselect
                 onKeyPressFn={function noRefCheck(){}}
                 onRemove={selectionChanged}
@@ -557,11 +623,6 @@ export const DropComMapTopography = (props: DropdownProps) => {
 }
 
 export const DropComMapName = (props: DropdownProps) => {
-    const [isLessState, setIsLessState] = useState(false);
-
-    function toggleLessMore() {
-        setIsLessState(!isLessState);
-    }
 
     function selectionChanged(selectedList: MapNameSystem[]) {
         if(props.returnComplexref) {
@@ -575,6 +636,7 @@ export const DropComMapName = (props: DropdownProps) => {
                 if(JSON.stringify(props.returnComplexref.current.Map) === "{}") {
                     props.returnComplexref.current.Map = undefined;
                 }
+                props.selectionChanged();
                 return;
             }
             // Add to complex ref
@@ -598,7 +660,6 @@ export const DropComMapName = (props: DropdownProps) => {
         <div className={props.classNames + " DropComplex"}>
             <h6>Map Name</h6>
             <div id="Dropdown">
-                <LessMoreButton isLess={isLessState} clickAction={toggleLessMore} />
                 <Multiselect
                 onKeyPressFn={function noRefCheck(){}}
                 onRemove={selectionChanged}
@@ -619,6 +680,15 @@ export const DropComMapChallenge = (props: DropdownProps) => {
 
     function toggleLessMore() {
         setIsLessState(!isLessState);
+        // Set isLessTHan
+        if(props.returnComplexref && props.returnComplexref.current.Map) {
+            if(props.returnComplexref.current.Map.Challenge) {
+                props.returnComplexref.current.Map.Challenge = {
+                    ...props.returnComplexref.current.Map.Challenge,
+                    isLessThan: !isLessState
+                }
+            }
+        }
     }
 
     function blankSearch() {
@@ -632,6 +702,7 @@ export const DropComMapChallenge = (props: DropdownProps) => {
             if(JSON.stringify(props.returnComplexref.current.Map) === "{}") {
                 props.returnComplexref.current.Map = undefined;
             }
+            props.selectionChanged();
             return;
         } else {
             refError("DropComMapName");

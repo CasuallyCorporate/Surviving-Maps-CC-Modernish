@@ -56,7 +56,7 @@ export const SearchSection = (props: SearchSectionProps) => {
                             <h3>{props.rowName}</h3>
                         </a>
                         <div id="SearchComponents">
-                            <DropGameVariant classNames="col-md-3" returnSimpleRef={props.returnSimpleRef} selectionChanged={props.changedSelection} />
+                            <DropGameVariant classNames="col-md-3 variantSearch" returnSimpleRef={props.returnSimpleRef} selectionChanged={props.changedSelection} />
                         </div>
                         <div id="SearchComponents">
                             <DropBreakthrough classNames="col-md-12" returnSimpleRef={props.returnSimpleRef} selectionChanged={props.changedSelection} />
@@ -73,7 +73,7 @@ export const SearchSection = (props: SearchSectionProps) => {
                             <h3>{props.rowName}</h3>
                         </a>
                         <div id="SearchComponents">
-                            <DropGameVariant classNames="col-md-3" returnSimpleRef={props.returnSimpleRef} selectionChanged={props.changedSelection} />
+                            <DropGameVariant classNames="col-md-3 variantSearch" returnSimpleRef={props.returnSimpleRef} selectionChanged={props.changedSelection} />
                             <DropResources classNames="col-md-4 slSearch" returnSimpleRef={props.returnSimpleRef} selectionChanged={props.changedSelection} />
                             <DropDisasters classNames="col-md-4 slSearch" returnSimpleRef={props.returnSimpleRef} selectionChanged={props.changedSelection} />
                         </div>
