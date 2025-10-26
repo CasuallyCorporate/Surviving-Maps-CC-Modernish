@@ -220,7 +220,7 @@ button:focus, button:focus-visible {
   text-align: right;
   height: 3vh;
   margin: 0;
-  overflow: visible;
+  overflow: hidden;
 }
 .ComparitorButton p {
   margin: 0;
