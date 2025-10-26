@@ -145,7 +145,7 @@ export default function appMain() {
                 toggled={rowToggled} changedSelection={handleSearchValueChanged} />
             </div>
             <hr/>
-            <div className="tool-tipped" id="Search">
+            <div id="Search">
                 <SearchButtonRow getFullRequest={returnFullRequest} setLoadingAnimation={setLoading} returnsResults={handleSearchResults}
                 specificPage={getSpecificPage} changedSearchValues={searchValuesChanged} />
             </div>

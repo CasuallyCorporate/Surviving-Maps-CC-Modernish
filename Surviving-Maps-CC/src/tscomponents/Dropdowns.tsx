@@ -3,10 +3,12 @@ import Multiselect from "multiselect-react-dropdown";
 import { listBreakthroughVariant, listVariantSYSTEM, VariantSystem,
     BreakthroughVariant, SimpleRequest, ComplexRequest, Breakthrough,
     listNamedLanding, listTopography, listMapNames, NamedLandingSystem,
-    TopographySystem, MapNameSystem} from "./SM-Constants";
+    TopographySystem, MapNameSystem, ComparitorState,
+    } from "./SM-Constants";
+// VariantEnum} from "./SM-Constants";
 
-interface LessMoreProps {
-    isLess: Boolean;
+interface ComparitorProps {
+    comparitorState: ComparitorState;
     clickAction(): any;
 }
 
@@ -30,15 +32,51 @@ function refError(str: string) {
 }
 
 /* Less/More Button */
-export const LessMoreButton = (props: LessMoreProps ) => {
+export const ComparitorButton = (props: ComparitorProps ) => {
 
-    if(props.isLess){
-        return (
-            <button onClick={props.clickAction} className="LessMoreButton"> <div className="LessMore"><p>Less</p><p className="strikedown">More</p></div><p id="than">or =</p> </button>
-        );
+    if(props.comparitorState){
+        if (props.comparitorState == ComparitorState.LessThan) {
+            return (
+                <button onClick={props.clickAction} className="ComparitorButton">
+                    <p id="strikeup">{ComparitorState.MoreThan}</p>
+                    <p className="Comparitor">
+                        {ComparitorState.LessThan}
+                    </p>
+                    <p id="strikedown">{ComparitorState.EquealTo}</p>
+                </button>
+            );
+        }
+        if (props.comparitorState == ComparitorState.EquealTo) {
+            return (
+                <button onClick={props.clickAction} className="ComparitorButton">
+                    <p id="strikeup">{ComparitorState.LessThan}</p>
+                    <p className="Comparitor">
+                        {ComparitorState.EquealTo}
+                    </p>
+                    <p id="strikedown">{ComparitorState.MoreThan}</p>
+                </button>
+            );
+        }
+        else {
+            return (
+                <button onClick={props.clickAction} className="ComparitorButton">
+                    <p id="strikeup">{ComparitorState.EquealTo}</p>
+                    <p className="Comparitor">
+                        {ComparitorState.MoreThan}
+                    </p>
+                    <p id="strikedown">{ComparitorState.LessThan}</p>
+                </button>
+            );
+        }
     } else {
         return (
-            <button onClick={props.clickAction} className="LessMoreButton"> <div className="LessMore"><p className="strikeup">Less</p><p>More</p></div><p id="than">or =</p> </button>
+            <button onClick={props.clickAction} className="ComparitorButton">
+                <p id="strikeup">{ComparitorState.LessThan}</p>
+                <p className="Comparitor">
+                    {ComparitorState.EquealTo}
+                </p>
+                <p id="strikedown">{ComparitorState.MoreThan}</p>
+            </button>
         );
     }
 }
@@ -113,6 +151,37 @@ export const DropBreakthrough = (props: DropdownProps) => {
         props.selectionChanged();
     }
 
+    if (props.returnSimpleRef) {
+        if (props.returnSimpleRef.current.Variant) {
+            if (props.returnSimpleRef.current.Variant == "BELOW_BEYOND"
+                ||
+                props.returnSimpleRef.current.Variant == "BEYOND_GREEN") {
+                return (
+                    <>
+                    <div className={props.classNames + " tool-tipped"}>
+                        <div id="WholeWidth">
+                        <Multiselect
+                            onKeyPressFn={function noRefCheck(){}}
+                            onRemove={selectionChanged}
+                            onSearch={function noRefCheck(){}}
+                            onSelect={selectionChanged}
+                            displayValue="breakthrough"
+                            groupBy="variant"
+                            options={listBreakthroughVariant}
+                            selectionLimit={13}
+                            placeholder="Breakthroughs"
+                        />
+                        </div>
+                        <div className="hover-tooltip">
+                            Searches with "Below and Beyond" only include map-based anomaly breakthroughs. Planetary anomalies are random for these breaktrhoughs.
+                        </div>
+                    </div>
+                    </>
+                );
+            }
+        }
+    }
+
     return (
         <>
         <div className={props.classNames + " tool-tipped"}>
@@ -129,9 +198,6 @@ export const DropBreakthrough = (props: DropdownProps) => {
                 placeholder="Breakthroughs"
             />
             </div>
-            <div className="hover-tooltip">
-                "Below and Beyond" searches only cover map anomaly based breakthroughs. "Below and Beyond" Planetary view breakthroughs are random.
-            </div>
         </div>
         </>
     );
@@ -139,10 +205,13 @@ export const DropBreakthrough = (props: DropdownProps) => {
 
 export const DropResources = (props: DropdownProps) => {
 
-    const [isLessState, setIsLessState] = useState(false);
+    const [getComparitor, setComparitor] = useState(ComparitorState.EquealTo);
 
     function toggleLessMore() {
-        setIsLessState(!isLessState);
+        let compState = getComparitor;
+        if (compState == ComparitorState.LessThan) {setComparitor(ComparitorState.EquealTo)}
+        else if (compState == ComparitorState.EquealTo) {setComparitor(ComparitorState.MoreThan)}
+        else if (compState == ComparitorState.MoreThan) {setComparitor(ComparitorState.LessThan)}
     }
 
     function blankSearch() {
@@ -156,7 +225,7 @@ export const DropResources = (props: DropdownProps) => {
 
     function selectionChanged(selectedList: number[]) {
         if(props.returnSimpleRef) {
-            props.returnSimpleRef.current.Resources = { Number: selectedList[0], isLessThan: isLessState };
+            props.returnSimpleRef.current.Resources = { Number: selectedList[0], comparitor: ComparitorState.EquealTo };
         } else {
             refError("DropResources");
         }
@@ -166,7 +235,7 @@ export const DropResources = (props: DropdownProps) => {
     return (
         <>
         <div className={props.classNames}>
-            <LessMoreButton isLess={isLessState} clickAction={toggleLessMore} />
+            <ComparitorButton comparitorState={getComparitor} clickAction={toggleLessMore} />
             <div id="WholeWidth">
             <Multiselect
                 isObject={false}
@@ -186,10 +255,13 @@ export const DropResources = (props: DropdownProps) => {
 }
 
 export const DropDisasters = (props: DropdownProps) => {
-    const [isLessState, setIsLessState] = useState(false);
+    const [getComparitor, setComparitor] = useState(ComparitorState.EquealTo);
 
     function toggleLessMore() {
-        setIsLessState(!isLessState);
+        let compState = getComparitor;
+        if (compState == ComparitorState.LessThan) {setComparitor(ComparitorState.EquealTo)}
+        else if (compState == ComparitorState.EquealTo) {setComparitor(ComparitorState.MoreThan)}
+        else if (compState == ComparitorState.MoreThan) {setComparitor(ComparitorState.LessThan)}
     }
 
     function blankSearch() {
@@ -203,7 +275,7 @@ export const DropDisasters = (props: DropdownProps) => {
 
     function selectionChanged(selectedList: number[]) {
         if(props.returnSimpleRef) {
-            props.returnSimpleRef.current.Disasters = { Number: selectedList[0], isLessThan: isLessState };
+            props.returnSimpleRef.current.Disasters = { Number: selectedList[0], comparitor: ComparitorState.EquealTo };
         } else {
             refError("DropDisasters");
         }
@@ -213,7 +285,7 @@ export const DropDisasters = (props: DropdownProps) => {
     return (
         <>
         <div className={props.classNames}>
-            <LessMoreButton isLess={isLessState} clickAction={toggleLessMore} />
+            <ComparitorButton comparitorState={getComparitor} clickAction={toggleLessMore} />
             <div id="WholeWidth">
             <Multiselect
                 isObject={false}
@@ -221,7 +293,7 @@ export const DropDisasters = (props: DropdownProps) => {
                 onRemove={blankSearch}
                 onSearch={function noRefCheck(){}}
                 onSelect={selectionChanged}
-                options={[...Array(11).keys()].slice(4,11)}
+                options={[...Array(17).keys()].slice(4,17)}
                 singleSelect
                 placeholder="Disasters"
                 customCloseIcon={<>❌</>}
@@ -236,18 +308,22 @@ export const DropDisasters = (props: DropdownProps) => {
 
 /* Generic RESOURCE Dropdown */
 export const DropComResource = (props: DropdownProps & ResourceProps) => {
-    const [isLessState, setIsLessState] = useState(false);
+    const [getComparitor, setComparitor] = useState(ComparitorState.EquealTo);
 
     function toggleLessMore() {
-        setIsLessState(!isLessState);
-        // Set isLessThan
+        let compstate = getComparitor;
+
+        if (compstate == ComparitorState.LessThan) {setComparitor(ComparitorState.EquealTo); compstate = ComparitorState.EquealTo}
+        else if (compstate == ComparitorState.EquealTo) {setComparitor(ComparitorState.MoreThan); compstate = ComparitorState.MoreThan}
+        else if (compstate == ComparitorState.MoreThan) {setComparitor(ComparitorState.LessThan); compstate = ComparitorState.LessThan}
+
         if(props.returnComplexref && props.returnComplexref.current.Resources) {
             switch(props.resource) {
                 case "Water":
                     if(props.returnComplexref.current.Resources.Water) {
                         props.returnComplexref.current.Resources.Water = {
                             ...props.returnComplexref.current.Resources.Water,
-                            isLessThan: !isLessState
+                            comparitor: compstate
                         }
                     }
                     break;
@@ -255,7 +331,7 @@ export const DropComResource = (props: DropdownProps & ResourceProps) => {
                     if(props.returnComplexref.current.Resources.Concrete) {
                         props.returnComplexref.current.Resources.Concrete = {
                             ...props.returnComplexref.current.Resources.Concrete,
-                            isLessThan: !isLessState
+                            comparitor: compstate
                         }
                     }
                     break;
@@ -263,7 +339,7 @@ export const DropComResource = (props: DropdownProps & ResourceProps) => {
                     if(props.returnComplexref.current.Resources.Metal) {
                         props.returnComplexref.current.Resources.Metal = {
                             ...props.returnComplexref.current.Resources.Metal,
-                            isLessThan: !isLessState
+                            comparitor: compstate
                         }
                     }
                     break;
@@ -271,7 +347,7 @@ export const DropComResource = (props: DropdownProps & ResourceProps) => {
                     if(props.returnComplexref.current.Resources.RareMetal) {
                         props.returnComplexref.current.Resources.RareMetal = {
                             ...props.returnComplexref.current.Resources.RareMetal,
-                            isLessThan: !isLessState
+                            comparitor: compstate
                         }
                     }
                     break;
@@ -324,25 +400,25 @@ export const DropComResource = (props: DropdownProps & ResourceProps) => {
                 case "Water":
                     props.returnComplexref.current.Resources = {
                         ...props.returnComplexref.current.Resources,
-                        Water: { Number: selectedList[0], isLessThan: isLessState }
+                        Water: { Number: selectedList[0], comparitor: getComparitor }
                     }
                     break;
                 case "Concrete":
                     props.returnComplexref.current.Resources = {
                         ...props.returnComplexref.current.Resources,
-                        Concrete: { Number: selectedList[0], isLessThan: isLessState }
+                        Concrete: { Number: selectedList[0], comparitor: getComparitor }
                     }
                     break;
                 case "Metal":
                     props.returnComplexref.current.Resources = {
                         ...props.returnComplexref.current.Resources,
-                        Metal: { Number: selectedList[0], isLessThan: isLessState }
+                        Metal: { Number: selectedList[0], comparitor: getComparitor }
                     }
                     break;
                 case "Rare Metal":
                     props.returnComplexref.current.Resources = {
                         ...props.returnComplexref.current.Resources,
-                        RareMetal: { Number: selectedList[0], isLessThan: isLessState }
+                        RareMetal: { Number: selectedList[0], comparitor: getComparitor }
                     }
                     break;
             }
@@ -357,7 +433,7 @@ export const DropComResource = (props: DropdownProps & ResourceProps) => {
         <div className={props.classNames + " DropComplex"}>
             <h6>{props.resource}</h6>
             <div id="Dropdown">
-                <LessMoreButton isLess={isLessState} clickAction={toggleLessMore} />
+                <ComparitorButton comparitorState={getComparitor} clickAction={toggleLessMore} />
                 <Multiselect
                 isObject={false}
                 onKeyPressFn={function noRefCheck(){}}
@@ -366,7 +442,6 @@ export const DropComResource = (props: DropdownProps & ResourceProps) => {
                 onSelect={selectionChanged}
                 options={[...Array(5).keys()].slice(1,5)}
                 singleSelect
-                placeholder={props.resource}
                 customCloseIcon={<>❌</>}
                 />
             </div>
@@ -376,10 +451,15 @@ export const DropComResource = (props: DropdownProps & ResourceProps) => {
 }
 /* Generic DISASTER Dropdown */
 export const DropComDisaster = (props: DropdownProps & DisasterProps) => {
-    const [isLessState, setIsLessState] = useState(false);
+    const [getComparitor, setComparitor] = useState(ComparitorState.EquealTo);
 
     function toggleLessMore() {
-        setIsLessState(!isLessState);
+        let compstate = getComparitor;
+
+        if (compstate == ComparitorState.LessThan) {setComparitor(ComparitorState.EquealTo); compstate = ComparitorState.EquealTo}
+        else if (compstate == ComparitorState.EquealTo) {setComparitor(ComparitorState.MoreThan); compstate = ComparitorState.MoreThan}
+        else if (compstate == ComparitorState.MoreThan) {setComparitor(ComparitorState.LessThan); compstate = ComparitorState.LessThan}
+
         // Set the new isLessThan
         if(props.returnComplexref && props.returnComplexref.current.Disasters) {
             switch(props.disaster) {
@@ -387,7 +467,7 @@ export const DropComDisaster = (props: DropdownProps & DisasterProps) => {
                     if(props.returnComplexref.current.Disasters.Meteors) {
                         props.returnComplexref.current.Disasters.Meteors = {
                             ...props.returnComplexref.current.Disasters.Meteors,
-                            isLessThan: !isLessState
+                            comparitor: compstate
                         }
                     }
                     break;
@@ -395,7 +475,7 @@ export const DropComDisaster = (props: DropdownProps & DisasterProps) => {
                     if(props.returnComplexref.current.Disasters.ColdWaves) {
                         props.returnComplexref.current.Disasters.ColdWaves = {
                             ...props.returnComplexref.current.Disasters.ColdWaves,
-                            isLessThan: !isLessState
+                            comparitor: compstate
                         }
                     }
                     break;
@@ -403,7 +483,7 @@ export const DropComDisaster = (props: DropdownProps & DisasterProps) => {
                     if(props.returnComplexref.current.Disasters.DustStorms) {
                         props.returnComplexref.current.Disasters.DustStorms = {
                             ...props.returnComplexref.current.Disasters.DustStorms,
-                            isLessThan: !isLessState
+                            comparitor: compstate
                         }
                     }
                     break;
@@ -411,7 +491,7 @@ export const DropComDisaster = (props: DropdownProps & DisasterProps) => {
                     if(props.returnComplexref.current.Disasters.DustDevils) {
                         props.returnComplexref.current.Disasters.DustDevils = {
                             ...props.returnComplexref.current.Disasters.DustDevils,
-                            isLessThan: !isLessState
+                            comparitor: compstate
                         }
                     }
                     break;
@@ -464,25 +544,25 @@ export const DropComDisaster = (props: DropdownProps & DisasterProps) => {
                 case "Meteors":
                     props.returnComplexref.current.Disasters = {
                         ...props.returnComplexref.current.Disasters,
-                        Meteors: { Number: selectedList[0], isLessThan: isLessState }
+                        Meteors: { Number: selectedList[0], comparitor: getComparitor }
                     }
                     break;
                 case "Cold Waves":
                     props.returnComplexref.current.Disasters = {
                         ...props.returnComplexref.current.Disasters,
-                        ColdWaves: { Number: selectedList[0], isLessThan: isLessState }
+                        ColdWaves: { Number: selectedList[0], comparitor: getComparitor }
                     }
                     break;
                 case "Dust Storms":
                     props.returnComplexref.current.Disasters = {
                         ...props.returnComplexref.current.Disasters,
-                        DustStorms: { Number: selectedList[0], isLessThan: isLessState }
+                        DustStorms: { Number: selectedList[0], comparitor: getComparitor }
                     }
                     break;
                 case "Dust Devils":
                     props.returnComplexref.current.Disasters = {
                         ...props.returnComplexref.current.Disasters,
-                        DustDevils: { Number: selectedList[0], isLessThan: isLessState }
+                        DustDevils: { Number: selectedList[0], comparitor: getComparitor }
                     }
                     break;
             }
@@ -497,7 +577,7 @@ export const DropComDisaster = (props: DropdownProps & DisasterProps) => {
         <div className={props.classNames + " DropComplex"}>
             <h6>{props.disaster}</h6>
             <div id="Dropdown">
-                <LessMoreButton isLess={isLessState} clickAction={toggleLessMore} />
+                <ComparitorButton comparitorState={getComparitor} clickAction={toggleLessMore} />
                 <Multiselect
                 isObject={false}
                 onKeyPressFn={function noRefCheck(){}}
@@ -506,7 +586,6 @@ export const DropComDisaster = (props: DropdownProps & DisasterProps) => {
                 onSelect={selectionChanged}
                 options={[...Array(5).keys()].slice(1,5)}
                 singleSelect
-                placeholder={props.disaster}
                 customCloseIcon={<>❌</>}
                 />
             </div>
@@ -561,7 +640,7 @@ export const DropComMapLanding = (props: DropdownProps) => {
                 onSelect={selectionChanged}
                 displayValue="locationName"
                 options={listNamedLanding}
-                placeholder="Named Landing Area"
+                className="WiderMulti"
                 />
             </div>
         </div>
@@ -614,7 +693,7 @@ export const DropComMapTopography = (props: DropdownProps) => {
                 onSelect={selectionChanged}
                 displayValue="topographyName"
                 options={listTopography}
-                placeholder="Topography"
+                className="WiderMulti"
                 />
             </div>
         </div>
@@ -667,7 +746,7 @@ export const DropComMapName = (props: DropdownProps) => {
                 onSelect={selectionChanged}
                 displayValue="mapName"
                 options={listMapNames}
-                placeholder="Map Name"
+                className="WiderMulti"
                 />
             </div>
         </div>
@@ -676,16 +755,20 @@ export const DropComMapName = (props: DropdownProps) => {
 }
 
 export const DropComMapChallenge = (props: DropdownProps) => {
-    const [isLessState, setIsLessState] = useState(false);
+    const [getComparitor, setComparitor] = useState(ComparitorState.EquealTo);
 
     function toggleLessMore() {
-        setIsLessState(!isLessState);
-        // Set isLessTHan
+        let compstate = getComparitor;
+
+        if (compstate == ComparitorState.LessThan) {setComparitor(ComparitorState.EquealTo); compstate = ComparitorState.EquealTo}
+        else if (compstate == ComparitorState.EquealTo) {setComparitor(ComparitorState.MoreThan); compstate = ComparitorState.MoreThan}
+        else if (compstate == ComparitorState.MoreThan) {setComparitor(ComparitorState.LessThan); compstate = ComparitorState.LessThan}
+
         if(props.returnComplexref && props.returnComplexref.current.Map) {
             if(props.returnComplexref.current.Map.Challenge) {
                 props.returnComplexref.current.Map.Challenge = {
                     ...props.returnComplexref.current.Map.Challenge,
-                    isLessThan: !isLessState
+                    comparitor: compstate
                 }
             }
         }
@@ -715,7 +798,7 @@ export const DropComMapChallenge = (props: DropdownProps) => {
             // Overwrite/set the current list
             props.returnComplexref.current.Map = {
                 ...props.returnComplexref.current.Map,
-                Challenge: { Number: selectedList[0], isLessThan: isLessState}};
+                Challenge: { Number: selectedList[0], comparitor: getComparitor}};
         } else {
             refError("DropComMapName");
         }
@@ -727,7 +810,7 @@ export const DropComMapChallenge = (props: DropdownProps) => {
         <div className={props.classNames + " DropComplex"}>
             <h6>Challenge Difficulty</h6>
             <div id="Dropdown">
-            <LessMoreButton isLess={isLessState} clickAction={toggleLessMore} />
+            <ComparitorButton comparitorState={getComparitor} clickAction={toggleLessMore} />
             <Multiselect
                 isObject={false}
                 onKeyPressFn={function noRefCheck(){}}
@@ -736,7 +819,6 @@ export const DropComMapChallenge = (props: DropdownProps) => {
                 onSelect={selectionChanged}
                 options={[100, 120, 140, 160, 180, 200, 220, 240]}
                 singleSelect
-                placeholder="Challenge"
                 customCloseIcon={<>❌</>}
             />
             </div>

@@ -116,7 +116,7 @@ export const SearchButtonRow = (props: ButtonRowProps) => {
             if(buttonState != ButtonState.SEARCHING && buttonState != ButtonState.FAILED) {
                 //Setting to changed
                 setButtonState(ButtonState.CHANGED);
-                setTooltTip("Parameters changed. Press search for new results!");
+                setTooltTip("Press search for new results!");
             }
         } else {
             if(buttonState == ButtonState.CHANGED) {
@@ -137,8 +137,8 @@ export const SearchButtonRow = (props: ButtonRowProps) => {
     } else {
         return(
             <>
-                <button type="button" className={"btn btn-lg" +" "+ buttonState} onClick={localSend}>Search</button>
-                <div className="hover-tooltip">{ToolTip}</div>
+                <button type="button" className={"btn btn-lg tool-tipped" +" "+ buttonState} onClick={localSend}>Search<div className="hover-tooltip">{ToolTip}</div></button>
+                
             </>
         );
     }

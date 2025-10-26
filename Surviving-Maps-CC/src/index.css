@@ -148,10 +148,10 @@ button:focus, button:focus-visible {
 #SearchComponents {
   display: flex;
   flex-direction: row;
-  justify-content: space-evenly;
+  justify-content: space-between;
   justify-items: center;
 
-  margin: 0.2vh auto;
+  margin: 0.2vh 1vw;
 }
 
 #SearchComponents > .variantSearch {
@@ -170,7 +170,14 @@ button:focus, button:focus-visible {
 .DropComplex {
   flex-direction: column;
   justify-content: center;
+  justify-items: center;
   text-align: center;
+}
+.DropComplex #Dropdown div .multiselect-container {
+  width: 5rem;
+}
+.DropComplex #Dropdown div .WiderMulti {
+  width: 10rem;
 }
 .DropComplex > * {
   width: 100%;
@@ -185,6 +192,7 @@ button:focus, button:focus-visible {
   align-items: center;
   position: relative;
 }
+
 .slSearch > button {
   width: 25%;
 }
@@ -194,9 +202,6 @@ button:focus, button:focus-visible {
 #Dropdown > button
 {
   width: 30%;
-}
-#Dropdown > div {
-  width: 70%;
 }
 
 /* Less/More */
@@ -209,28 +214,33 @@ button:focus, button:focus-visible {
 .LessMoreButton #than {
   margin: auto 0 auto 0.5rem;
 }
-.LessMore {
+.ComparitorButton {
   position: relative;
-  display: grid;
-  justify-items: center;
+  display:grid;
+  text-align: right;
   height: 3vh;
-  width: 2.6rem;
-}
-.LessMore p {
-  margin: auto 0;
-}
-.LessMore .strikeup, .LessMore .strikedown {
-  text-decoration: line-through;
-  position: absolute;
   margin: 0;
+  overflow: visible;
 }
-.LessMore .strikeup {
-  top: -0.6vh;
-  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.4), rgba(0,0,0,0));
+.ComparitorButton p {
+  margin: 0;
+  font-size: small;
 }
-.LessMore .strikedown {
-  bottom: -0.6vh;
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0));
+.ComparitorButton #strikeup, .ComparitorButton #strikedown {
+  position: absolute;
+  text-decoration: line-through;
+}
+.ComparitorButton #strikeup {
+  top: 0.1em;
+  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.2), rgba(0,0,0,0));
+}
+.ComparitorButton #strikedown {
+  bottom: 0.1em;
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0));
+}
+.ComparitorButton .Comparitor {
+  font-weight: bold;
+  margin: auto 0;
 }
 
 /* SEARCH ROW */
@@ -423,6 +433,7 @@ button:focus, button:focus-visible {
   display: flex;
   justify-items: start;
   margin-bottom: 1rem;
+  user-select: none;
 }
 #PageNav #Page {
   font-weight: bold;
@@ -696,5 +707,6 @@ margin-top: none;
 .tool-tipped:hover > .hover-tooltip {
   display: block;
   text-align: center;
+  font-size: 1rem;
   z-index: 4;
 }

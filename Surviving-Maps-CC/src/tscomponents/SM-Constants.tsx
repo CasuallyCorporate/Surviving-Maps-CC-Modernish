@@ -346,6 +346,12 @@ export enum ButtonState {
     CHANGED = "btn-warning"
 }
 
+export enum ComparitorState {
+    LessThan = "Less/Equal:",
+    EquealTo = "Equal:",
+    MoreThan = "More/Equal:"
+}
+
 /* Simple Requests */
 export interface BreakthroughRequest {
     all: string[];
@@ -353,7 +359,7 @@ export interface BreakthroughRequest {
 
 export interface ValueRequest {
     Number: number;
-    isLessThan: boolean; // True less than number, False more than number
+    comparitor: ComparitorState; // True less than number, False more than number
 }
 
 export interface SimpleRequest {

@@ -1,6 +1,8 @@
 import { MutableRefObject, useEffect, useRef, useState } from "react";
-import { Breakthrough, BreakthroughList, CoordinateObj, listBreakthroughSYSTEM, listNamedLanding, listTopography, listVariantSYSTEM, SiteRequest, SiteResponse } from "./SM-Constants";
-import { ResultsView, sendResultsObj } from "./ResultsView";
+// import { Breakthrough, BreakthroughList, CoordinateObj, listBreakthroughSYSTEM, listNamedLanding, listTopography, listVariantSYSTEM, SiteRequest, SiteResponse } from "./SM-Constants";
+import { BreakthroughList, CoordinateObj, listBreakthroughSYSTEM, listNamedLanding, listTopography, listVariantSYSTEM, SiteRequest, SiteResponse } from "./SM-Constants";
+// import { ResultsView, sendResultsObj } from "./ResultsView";
+import { sendResultsObj } from "./ResultsView";
 import { ItemViewUtiltyCoordinates, ItemViewUtiltyFromBrowser, listBrowserPassthrough, UtilityOpenClose } from "./ItemViewUtilities";
 
 interface siteThumbProps {
