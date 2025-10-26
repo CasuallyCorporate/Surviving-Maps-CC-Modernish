@@ -13,3 +13,7 @@ Each .csv is~ 50,900 potential sites of interest, and the intent is to provide a
 
 ### Surviving-Maps-CPP (Back-end)
 The C++ Backend for responding to search queries received via the React front-end.
+
+### Surviving-Maps-DebugData
+The Node TS based random data generator to test the front-end, pre back-end availability.
+
