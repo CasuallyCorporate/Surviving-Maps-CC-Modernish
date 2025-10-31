@@ -3,8 +3,8 @@
 #include <memory>
 #include <vector>
 #include <thread>
-#include <functional>
-#include <chrono>
+
+#include <httplib.h>
 
 #include "IErrors.hpp"
 #include "GameVariant.hpp"
@@ -52,24 +52,36 @@ int main(/*int args, char* argv[]*/) {
 		return -1;
 	}
 
-	std::cout << "End of data ingest and formatting" << std::endl;
+	std::cout << "<!! Starting server !!>\n";
+	// setup and start httplib server
 
-	std::cout << "Testing search timings" << std::endl;
+	httplib::Server srv;
+	size_t hw_conc = std::thread::hardware_concurrency();
+	if (hw_conc > 1) {
+		hw_conc--;
+		srv.new_task_queue = [hw_conc] { return new httplib::ThreadPool(hw_conc); };
+	} else {
+		srv.new_task_queue = [] { return new httplib::ThreadPool(1); };
+	}
 
-	std::string inputJson = "";
+	srv.Post("/motd", [](const httplib::Request&, httplib::Response& res) {
+		res.set_content("{ \"Response\":\"Not implemented\"}", "application/json");
+	});
 
-	auto standardIt = _variantMap.find("STANDARD");
+	srv.Post("/site", [](const httplib::Request&, httplib::Response& res) {
+		res.set_content("{ \"Response\":\"Not implemented\"}", "application/json");
+	});
 
-	auto beforeSearch = std::chrono::high_resolution_clock::now();
-	standardIt->second.get()->searchWithJson_WithSearch(inputJson);
-	auto afterSearch = std::chrono::high_resolution_clock::now();
-	auto beforeDirectSearch = std::chrono::high_resolution_clock::now();
-	standardIt->second.get()->searchWithJson_WithDirect(inputJson);
-	auto afterDirectSearch = std::chrono::high_resolution_clock::now();
+	srv.Post("/page", [](const httplib::Request&, httplib::Response& res) {
+		res.set_content("{ \"Response\":\"Not implemented\"}", "application/json");
+	});
 
-	auto normalSearch = afterSearch.time_since_epoch() - beforeSearch.time_since_epoch();
-	auto directSearch = afterDirectSearch.time_since_epoch() - beforeDirectSearch.time_since_epoch();
+	srv.Post("/coord", [](const httplib::Request&, httplib::Response& res) {
+		res.set_content("{ \"Response\":\"Not implemented\"}", "application/json");
+	});
 
-	std::cout << "Normal Search: " << std::chrono::duration_cast<std::chrono::nanoseconds>(normalSearch).count() << std::endl;
-	std::cout << "Direct Search: " << std::chrono::duration_cast<std::chrono::nanoseconds>(directSearch).count() << std::endl;
+	std::cout << "<!! Server Listening !!>\n";
+	srv.listen("0.0.0.0", 8080);
+
+	return 0;
 }

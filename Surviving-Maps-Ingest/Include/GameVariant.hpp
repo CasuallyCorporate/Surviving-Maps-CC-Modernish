@@ -11,7 +11,6 @@
 #include "CSVIngest.hpp"
 
 #include "VariantData/DataColumnStore.hpp"
-#include "VariantData/ColumnSearch.hpp"
 
 class GameVariant {
 private:
@@ -26,8 +25,6 @@ private:
 	//Datas
 	std::shared_ptr<DataColumnStore> _Data;
 	bool _data_is_stored = false;
-	std::unique_ptr<ColumnSearch> _Search;
-	bool _search_is_created = false;
 
 public:
 	GameVariant(std::string variant, std::string csvURL, IErrors* error_obj) {
@@ -45,7 +42,7 @@ public:
 	void ingest() {
 		std::osyncstream coutStream(std::cout);
 
-		if (_data_is_stored || _search_is_created) {
+		if (_data_is_stored) {
 			_error_obj->setErrorMessage("Already ingested for " + _variantName);
 			coutStream << "<--- Error: Already Marked As Ingested for " << _variantName << " --->" << std::endl;
 			return;
@@ -70,23 +67,6 @@ public:
 		delete _variant;
 		delete _csvURL;
 
-		// Set the column groups
-		_Search = std::make_unique<ColumnSearch>(_error_obj, _Data);
-		if (!_Search.get()->initColumnGroups()) {
-			coutStream << "Failed to initialise columngroups in Column Search" << std::endl;
-			coutStream << "<--- ColumnSearch failed to init with error: " << _error_obj->getErrorString() << " --->" << std::endl;
-			return;
-		}
-		_search_is_created = true;
-
 		coutStream << "<--- Finished Ingesting: " << _variantName << " --> " << std::endl;
-	}
-
-	std::shared_ptr< std::vector<uint16_t, uint16_t> > searchWithJson_WithSearch(std::string & inputJson) {
-		return nullptr;
-	}
-
-	std::shared_ptr< std::vector<uint16_t, uint16_t> > searchWithJson_WithDirect(std::string& inputJson) {
-		return nullptr;
 	}
 };

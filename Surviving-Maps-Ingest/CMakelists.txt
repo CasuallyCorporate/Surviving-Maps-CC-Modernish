@@ -1,23 +1,40 @@
 cmake_minimum_required(VERSION "3.21")
-project(Surviving_Maps_Ingest VERSION 0.0.0)
+project(Surviving_Maps_CPP VERSION 0.0.0)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME}) 
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION}) 
 include(CPack)
+
+# Dependencies
+include(FetchContent)
+
+# Set versions
+set(HTTPLIB_VERSION 0.27.0)
+
+#get httplib
+FetchContent_Declare(
+httplib
+URL https://github.com/yhirose/cpp-httplib/archive/refs/tags/v${HTTPLIB_VERSION}.tar.gz
+FIND_PACKAGE_ARGS ${RAYLIB_VERSION} EXACT
+)
+set(BUILD_EXAMPLES OFF CACHE INTERNAL "")
+FetchContent_MakeAvailable(httplib)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 file(GLOB_RECURSE SOURCES "Source/*.cpp")
 
-add_executable(Surviving_Maps_Ingest ${SOURCES})
+add_executable(Surviving_Maps_CPP ${SOURCES})
 
-target_include_directories(Surviving_Maps_Ingest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Include)
-target_include_directories(Surviving_Maps_Ingest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Include/Site)
-target_include_directories(Surviving_Maps_Ingest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Include/VariantData)
-target_include_directories(Surviving_Maps_Ingest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Include/SearchContext)
+target_include_directories(Surviving_Maps_CPP PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Include)
+target_include_directories(Surviving_Maps_CPP PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Include/Site)
+target_include_directories(Surviving_Maps_CPP PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Include/VariantData)
+target_include_directories(Surviving_Maps_CPP PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Include/SearchContext)
 
-add_custom_command(TARGET Surviving_Maps_Ingest POST_BUILD
+target_link_libraries(${PROJECT_NAME} httplib)
+
+add_custom_command(TARGET Surviving_Maps_CPP POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
 	"${PROJECT_SOURCE_DIR}/CSVMapData/"
 	"${CMAKE_CURRENT_BINARY_DIR}/CSVMapData/")
