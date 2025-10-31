@@ -3,6 +3,7 @@
 #include <memory>
 #include <vector>
 #include <thread>
+#include <csignal>
 
 #include <httplib.h>
 
@@ -19,6 +20,14 @@ std::map<std::string, std::unique_ptr<GameVariant>> _variantMap;
 IErrors _error_obj;
 
 std::vector<std::thread> _ingestThreads;
+
+httplib::Server* _SrvPointer = nullptr;
+
+void stopSrvSignalHandler(int sig) {
+	if (_SrvPointer) {
+		_SrvPointer->stop();
+	}
+}
 
 int main(/*int args, char* argv[]*/) {
 	std::cout << "<!! Setting variants !!>\n";
@@ -59,7 +68,7 @@ int main(/*int args, char* argv[]*/) {
 	size_t hw_conc = std::thread::hardware_concurrency();
 	if (hw_conc > 1) {
 		hw_conc--;
-		srv.new_task_queue = [hw_conc] { return new httplib::ThreadPool(hw_conc); };
+		srv.new_task_queue = [&hw_conc] { return new httplib::ThreadPool(hw_conc); };
 	} else {
 		srv.new_task_queue = [] { return new httplib::ThreadPool(1); };
 	}
@@ -80,8 +89,14 @@ int main(/*int args, char* argv[]*/) {
 		res.set_content("{ \"Response\":\"Not implemented\"}", "application/json");
 	});
 
+	// setup stop signals
+	_SrvPointer = &srv;
+	signal(SIGABRT, stopSrvSignalHandler);
+	signal(SIGTERM, stopSrvSignalHandler);
+	signal(SIGINT, stopSrvSignalHandler);
+
 	std::cout << "<!! Server Listening !!>\n";
-	srv.listen("0.0.0.0", 8080);
+	srv.listen("0.0.0.0", 8000);
 
 	return 0;
 }
