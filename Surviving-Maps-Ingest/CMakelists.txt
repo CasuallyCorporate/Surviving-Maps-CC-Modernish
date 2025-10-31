@@ -15,16 +15,9 @@ add_executable(Surviving_Maps_Ingest ${SOURCES})
 target_include_directories(Surviving_Maps_Ingest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Include)
 target_include_directories(Surviving_Maps_Ingest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Include/Site)
 target_include_directories(Surviving_Maps_Ingest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Include/VariantData)
+target_include_directories(Surviving_Maps_Ingest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Include/SearchContext)
 
-add_custom_command(TARGET Surviving_Maps_Ingest POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -E copy_if_different
-	"${PROJECT_SOURCE_DIR}/LICENSE"
-	$<TARGET_FILE_DIR:Surviving_Maps_Ingest>)
-add_custom_command(TARGET Surviving_Maps_Ingest POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -E copy_if_different
-	"${PROJECT_SOURCE_DIR}/README.md"
-	$<TARGET_FILE_DIR:Surviving_Maps_Ingest>)
 add_custom_command(TARGET Surviving_Maps_Ingest POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
 	"${PROJECT_SOURCE_DIR}/CSVMapData/"
-	$<TARGET_FILE_DIR:Surviving_Maps_Ingest>)
+	"${CMAKE_CURRENT_BINARY_DIR}/CSVMapData/")

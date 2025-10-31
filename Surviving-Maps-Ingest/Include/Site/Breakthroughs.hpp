@@ -1,10 +1,13 @@
 #pragma once
 
+#include <array>
 #include <map>
 #include <string>
+#include <bitset>
 
 namespace Breakthroughs {
-    const enum breakthrough_Enum: uint8_t {
+
+    static const enum breakthrough_Enum: uint8_t {
         ADVANCED_DRONE_DRIVE = 0,
         ALIEN_IMPRINTS,
         ANCIENT_TERRAFORMING_DEVICE,
@@ -71,10 +74,11 @@ namespace Breakthroughs {
         VEHICLE_WEIGHT_OPTIMISATIONS,
         VOCATION_ORIENTED_SOCIETY,
         WIRELESS_POWER,
-        ZERO_SPACE_COMPUTING
+        ZERO_SPACE_COMPUTING,
+        END_NONE
     };
 
-    const static std::map<std::string, breakthrough_Enum> stringToEnum {
+    static const std::map<std::string, breakthrough_Enum> stringToEnum {
         {"Advanced Drone Drive", breakthrough_Enum::ADVANCED_DRONE_DRIVE},
         {"Alien Imprints", breakthrough_Enum::ALIEN_IMPRINTS},
         {"Ancient Terraforming Device", breakthrough_Enum::ANCIENT_TERRAFORMING_DEVICE},
@@ -142,5 +146,26 @@ namespace Breakthroughs {
         {"Vocation-Oriented Society", breakthrough_Enum::VOCATION_ORIENTED_SOCIETY},
         {"Wireless Power", breakthrough_Enum::WIRELESS_POWER},
         {"Zero-Space Computing", breakthrough_Enum::ZERO_SPACE_COMPUTING}
+    };
+
+    struct btrData {
+        std::bitset<Breakthroughs::breakthrough_Enum::END_NONE> bitset;
+
+        static bool getBreakthroughSet(btrData* btr, Breakthroughs::breakthrough_Enum breakthough) {
+            return btr->bitset.test(breakthough);
+        }
+        static bool setBreakthroughSet(btrData* btr, std::array<Breakthroughs::breakthrough_Enum, 13>* btrs) {
+            for (auto bth : *btrs) {
+                btr->bitset.flip(bth);
+                if (!btr->bitset.test(bth)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        bool operator < (const btrData& otherData) const {
+            return bitset.count() < otherData.bitset.count();
+        }
     };
 }

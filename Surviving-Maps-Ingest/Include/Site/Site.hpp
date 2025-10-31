@@ -2,218 +2,164 @@
 
 #include <map>
 #include <vector>
+#include <array>
 
 #include "IErrors.hpp"
 
+#include "Headers.hpp"
 #include "Breakthroughs.hpp"
 
 namespace Sites {
-	const enum Header {
-		None = 0,
-		LatitudeDeg, LatitudeNS, LongitudeDeg, LongitudeEW,
 
-		Metals, RareMetals, Concrete, Water,
-
-		DustDevils, DustStorms, Meteors, ColdWaves,
-
-		MapName, NamedLocation,	Topography,
-		DifficultyChallenge, Altitude, Temperature,
-
-		Breakthrough1, Breakthrough2, Breakthrough3, Breakthrough4, Breakthrough5, Breakthrough6, Breakthrough7, Breakthrough8, Breakthrough9, Breakthrough10,
-		Breakthrough11, Breakthrough12, Breakthrough13,
-		End
-	};
-
-	const std::map<std::string, Header> stringToHeader{
-		{"Latitude °", Header::LatitudeDeg}, {"Latitude", Header::LatitudeNS}, {"Longitude °", Header::LongitudeDeg}, {"Longitude", Header::LongitudeEW},
-
-		{"Metals", Header::Metals}, {"Rare Metals", Header::RareMetals}, {"Concrete", Header::Concrete}, {"Water", Header::Water},
-
-		{"Dust Devils", Header::DustDevils}, {"Dust Storms", Header::DustStorms}, {"Meteors", Header::Meteors}, {"Cold Waves", Header::ColdWaves},
-
-		{"Map Name", Header::MapName}, {"Named Location", Header::NamedLocation},
-		{"Topography", Header::Topography}, {"Difficulty Challenge", Header::DifficultyChallenge}, {"Altitude", Header::Altitude}, {"Temperature", Header::Temperature},
-
-		{"Breakthrough 1", Header::Breakthrough1}, {"Breakthrough 2", Header::Breakthrough2}, {"Breakthrough 3", Header::Breakthrough3}, {"Breakthrough 4", Header::Breakthrough4},
-		{"Breakthrough 5", Header::Breakthrough5}, {"Breakthrough 6", Header::Breakthrough6}, {"Breakthrough 7", Header::Breakthrough7}, {"Breakthrough 8", Header::Breakthrough8},
-		{"Breakthrough 9", Header::Breakthrough9}, {"Breakthrough 10", Header::Breakthrough10}, {"Breakthrough 11", Header::Breakthrough11}, {"Breakthrough 12", Header::Breakthrough12},
-		{"Breakthrough 13", Header::Breakthrough13}
-	};
-
-	const std::map<Header, std::string> headerToEnum{
-	{Header::LatitudeDeg, "Latitude °" }, {Header::LatitudeNS, "Latitude"}, {Header::LongitudeDeg, "Longitude °"}, {Header::LongitudeEW, "Longitude"},
-
-	{Header::Metals, "Metals"}, {Header::RareMetals, "Rare Metals"}, {Header::Concrete, "Concrete"}, {Header::Water, "Water"},
-
-	{Header::DustDevils, "Dust Devils"}, {Header::DustStorms, "Dust Storms"}, {Header::Meteors, "Meteors"}, {Header::ColdWaves, "Cold Waves"},
-
-	{Header::MapName, "Map Name"}, {Header::NamedLocation, "Named Location"},
-	{Header::Topography, "Topography"}, {Header::DifficultyChallenge, "Difficulty Challenge"}, {Header::Altitude, "Altitude"}, {Header::Temperature, "Temperature"},
-
-	{Header::Breakthrough1, "Breakthrough 1"}, {Header::Breakthrough2, "Breakthrough 2"}, {Header::Breakthrough3, "Breakthrough 3"}, {Header::Breakthrough4, "Breakthrough 4"},
-	{Header::Breakthrough5, "Breakthrough 5"}, {Header::Breakthrough6, "Breakthrough 6"}, {Header::Breakthrough7, "Breakthrough 7"}, {Header::Breakthrough8, "Breakthrough 8"},
-	{Header::Breakthrough9, "Breakthrough 9"}, {Header::Breakthrough10, "Breakthrough 10"}, {Header::Breakthrough11, "Breakthrough 11"}, {Header::Breakthrough12, "Breakthrough 12"},
-	{Header::Breakthrough13, "Breakthrough 13"}
-	};
-
-	const std::vector<Sites::Header> minRequiredHeaders {
-		LatitudeDeg, LatitudeNS, LongitudeDeg, LongitudeEW,
-		Metals, RareMetals, Concrete, Water,
-		DustDevils, DustStorms, Meteors, ColdWaves,
+	struct SiteData {
+		char LatNS;
+		int Latitude;
 		
-		Breakthrough1, Breakthrough2, Breakthrough3, Breakthrough4, Breakthrough5, Breakthrough6, Breakthrough7, Breakthrough8, Breakthrough9, Breakthrough10,
-		Breakthrough11, Breakthrough12, Breakthrough13,
+		char LongEW;
+		int Longitude;
+
+		std::array<uint8_t, 4> Resources;
+		std::array<uint8_t, 4> Disasters;
+
+		std::string MapName;
+		std::string MapLocation;
+		std::string MapTopography;
+
+		int DifficultyChallenge;
+		int Altitude;
+		int Temperature;
+
+		Breakthroughs::btrData Breakthroughs;
 	};
-}
 
-class Site: IErrors {
-private:
-	// Coordinates
-	char _defaultchar = 'E';
-	char _latNS = _defaultchar, _longEW = _defaultchar;
-	int _latitude = -1, _longitude = -1;
+	class Site {
+	public:
+		//Defaults
+		static const char _defaultchar = 'E';
 
-	// Resources
-	std::map<Sites::Header, int> _resources;
+		SiteData data = {
+			_defaultchar, -1,
+			
+			_defaultchar, -1,
 
-	// Disasters;
-	std::map<Sites::Header, int> _disasters;
+			{UINT8_MAX,UINT8_MAX,UINT8_MAX,UINT8_MAX},
+			{UINT8_MAX,UINT8_MAX,UINT8_MAX,UINT8_MAX},
 
-	// Map details
-	std::string _defaultString = "";
-	std::string _mapName = _defaultString, _mapLocation = _defaultString,
-		_mapTopography = _defaultString;
-	int _mapDifficultyChallenge = -1, _mapAltitude = INT_MIN, _mapTemperature = INT_MIN;
+			"",
+			"",
+			"",
 
-	// Breakthroughs
-	std::map<Sites::Header, Breakthroughs::breakthrough_Enum> _breakthroughs;
-	std::vector<Breakthroughs::breakthrough_Enum> _cachedBreakthroughs;
+			-1,
+			INT_MIN,
+			INT_MIN,
 
-public:
-	Site() {}
-	Site(const Site& other) {
-		_latNS = other._latNS; _longEW = other._longEW;
-		_latitude = _latitude; _longitude = _longitude;
+			Breakthroughs::btrData {}
+		};
 
-		_resources = other._resources;
+		// Breakthroughs
+		std::map<Header::Headers, Breakthroughs::breakthrough_Enum>* _breakthroughs = nullptr;
+		std::array<Breakthroughs::breakthrough_Enum, 13> _cachedBreakthroughs;
+		Breakthroughs::btrData _returnBreakthroughs;
 
-		_disasters = other._disasters;
 
-		_mapName = other._mapName; _mapLocation = other._mapLocation;
-		_mapTopography = other._mapTopography;
-		_mapDifficultyChallenge = other._mapDifficultyChallenge; _mapAltitude = other._mapAltitude;
-		_mapTemperature = other._mapTemperature;
+		Site() {}
+		Site(const Site& other) {
 
-		_breakthroughs = other._breakthroughs;
-		// _cachedBreakthroughs should refresh on it's own
-		// No defaults
-	}
+			data = other.data;
 
-	void transferContentsFrom(const Site& other) {
-		#pragma warning( disable : 26478)
-		_latNS = std::move(other._latNS); _longEW = std::move(other._longEW);
-		_latitude = std::move(_latitude); _longitude = std::move(_longitude);
+			_cachedBreakthroughs = other._cachedBreakthroughs;
+			// _cachedBreakthroughs should refresh on it's own
+			// No defaults
+		}
 
-		_resources = std::move(other._resources);
+		void transferContentsFrom(const Site& other) {
+#pragma warning( disable : 26478)
+			data = std::move(other.data);
 
-		_disasters = std::move(other._disasters);
-
-		_mapName = std::move(other._mapName); _mapLocation = std::move(other._mapLocation);
-		_mapTopography = std::move(other._mapTopography);
-		_mapDifficultyChallenge = std::move(other._mapDifficultyChallenge); _mapAltitude = std::move(other._mapAltitude);
-		_mapTemperature = std::move(other._mapTemperature);
-
-		_breakthroughs = std::move(other._breakthroughs);
-		// _cachedBreakthroughs should refresh on it's own
-		// No defaults
-		#pragma warning(pop)
-	}
+			_cachedBreakthroughs = std::move(other._cachedBreakthroughs);
+			// _cachedBreakthroughs should refresh on it's own
+			// No defaults
+#pragma warning(pop)
+		}
+	};
 
 	// Coordinates
 #pragma region Coordinates
-	bool setLatitudeNS(char NS) {
-		if (_latNS != _defaultchar)
+	static bool setLatitudeNS(char NS, Site* site) {
+		if (site->data.LatNS != site->_defaultchar)
 		{
-			setErrorMessage( { "Latitude NS already set", Errors::ToFrom::Create, Errors::ToFrom::None } );
 			return false;
 		}
 		else {
-			_latNS = NS;
+			site->data.LatNS = NS;
 			return true;
 		}
 	}
-	bool getLatitiudeNS(char* NS) {
-		if (_latNS != _defaultchar)
+	static bool getLatitiudeNS(char* NS, Site* site) {
+		if (site->data.LatNS != site->_defaultchar)
 		{
-			*NS = _latNS;
+			*NS = site->data.LatNS;
 			return true;
 		}
 		else {
-			setErrorMessage( { "Latitude NS not set", Errors::ToFrom::Read, Errors::ToFrom::None } );
 			return false;
 		}
 	}
-	bool setLongitudeEW(char EW) {
-		if (_longEW != _defaultchar)
+	static bool setLongitudeEW(char EW, Site* site) {
+		if (site->data.LongEW != site->_defaultchar)
 		{
-			setErrorMessage( { "Latitude EW already set", Errors::ToFrom::Create, Errors::ToFrom::None } );
 			return false;
 		}
 		else {
-			_longEW = EW;
+			site->data.LongEW = EW;
 			return true;
 		}
 	}
-	bool getLongitudeEW(char* EW) {
-		if (_longEW != _defaultchar)
+	static bool getLongitudeEW(char* EW, Site* site) {
+		if (site->data.LongEW != site->_defaultchar)
 		{
-			*EW = _longEW;
+			*EW = site->data.LongEW;
 			return true;
 		}
 		else {
-			setErrorMessage( { "Latitude EW not set", Errors::ToFrom::Read, Errors::ToFrom::None } );
 			return false;
 		}
 	}
-	bool setLatitudeValue(int value) {
-		if (_latitude < 0)
+	static bool setLatitudeValue(int value, Site* site) {
+		if (site->data.Latitude < 0)
 		{
-			_latitude = value;
+			site->data.Latitude = value;
 			return true;
 		}
 		else {
-			setErrorMessage( { "Latitude already set", Errors::ToFrom::Create, Errors::ToFrom::None } );
 			return false;
 		}
 	}
-	bool setLongitudeValue(int value) {
-		if (_longitude < 0)
+	static bool setLongitudeValue(int value, Site* site) {
+		if (site->data.Longitude < 0)
 		{
-			_longitude = value;
+			site->data.Longitude = value;
 			return true;
 		}
 		else {
-			setErrorMessage( { "Longitude already set", Errors::ToFrom::Create, Errors::ToFrom::None } );
 			return false;
 		}
 	}
-	bool getLatitudeValue(int* value) {
-		if (_latitude < 0) {
-			setErrorMessage( { "Latitude not set", Errors::ToFrom::Read, Errors::ToFrom::None } );
+	static bool getLatitudeValue(int* value, Site* site) {
+		if (site->data.Latitude < 0) {
 			return false;
 		}
 		else {
-			*value = _latitude;
+			*value = site->data.Latitude;
 			return true;
 		}
 	}
-	bool getLongitudeValue(int* value) {
-		if (_longitude < 0) {
-			setErrorMessage( { "Longitude not set", Errors::ToFrom::Read, Errors::ToFrom::None } );
+	static bool getLongitudeValue(int* value, Site* site) {
+		if (site->data.Longitude < 0) {
 			return false;
 		}
 		else {
-			*value = _longitude;
+			*value = site->data.Longitude;
 			return true;
 		}
 	}
@@ -221,211 +167,166 @@ public:
 
 	// Resources
 #pragma region Resources
-	bool setResourceValue(Sites::Header resourceNum, int value) {
-		if (resourceNum < Sites::Header::Metals || resourceNum > Sites::Header::Water)
+	static bool setResourceValue(Header::Headers resourceNum, uint8_t value, Site* site) {
+		if (resourceNum < Header::Headers::Metals || resourceNum > Header::Headers::Water)
 		{
-			setErrorMessage( { "Given Header is not a resource header", Errors::ToFrom::Create, Errors::ToFrom::None } );
 			return false;
 		}
 
-		std::map<Sites::Header, int>::iterator It;
-		It = _resources.find(resourceNum);
-		if (It == _resources.end())
-		{
-			_resources[resourceNum] = value;
+		uint8_t resourceindex = resourceNum - Header::Headers::Metals;
+
+		if (site->data.Resources[resourceindex] > 4) {
+			// Set
+			site->data.Resources[resourceindex] = value;
 			return true;
 		}
-		else {
-			setErrorMessage( { "Resource already set", Errors::ToFrom::Create, Errors::ToFrom::None } );
-			return false;
-		}
+		return false;
 	}
-	bool getResourceValue(Sites::Header resourceNum, int* value) {
-		if (resourceNum < Sites::Header::Metals || resourceNum > Sites::Header::Water)
+	static bool getResourceValue(Header::Headers resourceNum, uint8_t* value, Site* site) {
+		if (resourceNum < Header::Headers::Metals || resourceNum > Header::Headers::Water)
 		{
-			setErrorMessage( { "Given Header is not a resource header", Errors::ToFrom::Read, Errors::ToFrom::None } );
 			return false;
 		}
 
-		std::map<Sites::Header, int>::iterator It;
-		It = _resources.find(resourceNum);
-		if (It == _resources.end())
-		{
-			setErrorMessage( { "Resource header does not exist in resources", Errors::ToFrom::Read, Errors::ToFrom::None } );
+		uint8_t resourceindex = resourceNum - Header::Headers::Metals;
+
+		if (site->data.Resources[resourceindex] > 4) {
 			return false;
 		}
-		else {
-			*value = It->second;
-			return true;
-		}
+		*value = site->data.Resources[resourceindex];
+		return true;
 	}
 #pragma endregion
 
 	// Disasters
 #pragma region Disasters
-	bool setDisasterValue(Sites::Header disasternum, int value) {
-		if (disasternum < Sites::Header::DustDevils || disasternum > Sites::Header::ColdWaves)
+	static bool setDisasterValue(Header::Headers disasternum, uint8_t value, Site* site) {
+		if (disasternum < Header::Headers::DustDevils || disasternum > Header::Headers::ColdWaves)
 		{
-			setErrorMessage( { "Given Header is not a disaster header", Errors::ToFrom::Create, Errors::ToFrom::None } );
 			return false;
 		}
 
-		std::map<Sites::Header, int>::iterator It;
-		It = _disasters.find(disasternum);
-		if (It == _disasters.end())
-		{
-			_disasters[disasternum] = value;
+		uint8_t disasterIndex = disasternum - Header::Headers::DustDevils;
+
+		if (site->data.Disasters[disasterIndex] > 4) {
+			// Set
+			site->data.Disasters[disasterIndex] = value;
 			return true;
 		}
-		else {
-			setErrorMessage( { "Disaster already set", Errors::ToFrom::Create, Errors::ToFrom::None } );
-			return false;
-		}
+		return false;
 	}
-	bool getDisasterValue(Sites::Header disasternum, int* value) {
-		if (disasternum < Sites::Header::DustDevils || disasternum > Sites::Header::ColdWaves)
+	static bool getDisasterValue(Header::Headers disasternum, uint8_t* value, Site* site) {
+		if (disasternum < Header::Headers::DustDevils || disasternum > Header::Headers::ColdWaves)
 		{
-			setErrorMessage( { "Given Header is not a disaster header", Errors::ToFrom::Read, Errors::ToFrom::None } );
 			return false;
 		}
 
-		std::map<Sites::Header, int>::iterator It;
-		It = _disasters.find(disasternum);
-		if (It == _disasters.end())
-		{
-			setErrorMessage( { "Disaster header does not exist in Disasters", Errors::ToFrom::Read, Errors::ToFrom::None } );
+		uint8_t disasterIndex = disasternum - Header::Headers::DustDevils;
+
+		if (site->data.Disasters[disasterIndex] > 4) {
 			return false;
 		}
-		else {
-			*value = It->second;
-			return true;
-		}
+		*value = site->data.Disasters[disasterIndex];
+		return true;
 	}
 #pragma endregion
 
 	// Map details
 #pragma region MapDetails
-	bool setMapName(std::string name) {
-		if (_mapName == _defaultString)
+	static bool setMapName(std::string name, Site* site) {
+		if (site->data.MapName == "")
 		{
-			_mapName = name;
+			site->data.MapName = name;
 			return true;
 		}
 		else {
-			setErrorMessage( { "Map name already exists", Errors::ToFrom::Create, Errors::ToFrom::None } );
 			return false;
 		}
 	}
-	bool getMapName(std::string* name) {
-		if (_mapName != _defaultString)
+	static bool getMapName(std::string* name, Site* site) {
+		*name = site->data.MapName;
+
+		return true;
+	}
+	static bool setMapLocation(std::string location, Site* site) {
+		if (site->data.MapLocation == "")
 		{
-			*name = _mapName;
+			site->data.MapLocation = location;
 			return true;
 		}
 		else {
-			setErrorMessage( { "Map name does not exist", Errors::ToFrom::Read, Errors::ToFrom::None } );
 			return false;
 		}
 	}
-	bool setMapLocation(std::string location) {
-		if (_mapLocation == _defaultString)
+	static bool getMapLocation(std::string* location, Site* site) {
+		*location = site->data.MapLocation;
+		return true;
+	}
+	static bool setMapTopography(std::string topography, Site* site) {
+		if (site->data.MapTopography == "") {
+			site->data.MapTopography = topography;
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	static bool getMapTopography(std::string* topography, Site* site) {
+		*topography = site->data.MapTopography;
+		return true;
+	}
+	static bool setMapDifficulty(int difficulty, Site* site) {
+		if (site->data.DifficultyChallenge < 0) {
+			site->data.DifficultyChallenge = difficulty;
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	static bool getMapDifficulty(int* difficulty, Site* site) {
+		if (site->data.DifficultyChallenge < 0)
 		{
-			_mapLocation = location;
-			return true;
-		}
-		else {
-			setErrorMessage( { "Map location already exists", Errors::ToFrom::Create, Errors::ToFrom::None } );
-			return false;
-		}
-	}
-	bool getMapLocation(std::string* location) {
-		if (_mapLocation != _defaultString) {
-			*location = _mapLocation;
-			return true;
-		}
-		else {
-			setErrorMessage( { "Map location does not exist", Errors::ToFrom::Read, Errors::ToFrom::None } );
-			return false;
-		}
-	}
-	bool setMapTopography(std::string topography) {
-		if (_mapTopography == _defaultString) {
-			_mapTopography = topography;
-			return true;
-		}
-		else {
-			setErrorMessage( { "Map topography already exists", Errors::ToFrom::Create, Errors::ToFrom::None } );
-			return false;
-		}
-	}
-	bool getMapTopography(std::string* topography) {
-		if (_mapTopography != _defaultString) {
-			*topography = _mapTopography;
-			return true;
-		}
-		else {
-			setErrorMessage( { "Map topography does not exist", Errors::ToFrom::Read, Errors::ToFrom::None } );
-			return false;
-		}
-	}
-	bool setMapDifficulty(int difficulty) {
-		if (_mapDifficultyChallenge < 0) {
-			_mapDifficultyChallenge = difficulty;
-			return true;
-		}
-		else {
-			setErrorMessage( { "Map difficulty already exists", Errors::ToFrom::Create, Errors::ToFrom::None } );
-			return false;
-		}
-	}
-	bool getMapDifficulty(int* difficulty) {
-		if (_mapDifficultyChallenge < 0)
-		{
-			setErrorMessage( { "Map difficulty does not exist", Errors::ToFrom::Read, Errors::ToFrom::None } );
 			return false;
 		}
 		else {
-			*difficulty = _mapDifficultyChallenge;
+			*difficulty = site->data.DifficultyChallenge;
 			return true;
 		}
 	}
-	bool setMapAltitude(int altitude) {
-		if (_mapAltitude != INT_MIN) {
-			setErrorMessage( { "Map altitude already exists", Errors::ToFrom::Create, Errors::ToFrom::None } );
+	static bool setMapAltitude(int altitude, Site* site) {
+		if (site->data.Altitude != INT_MIN) {
 			return false;
 		}
 		else {
-			_mapAltitude = altitude;
+			site->data.Altitude = altitude;
 			return true;
 		}
 	}
-	bool getMapAltitude(int* altitude) {
-		if (_mapAltitude != INT_MIN) {
-			*altitude = _mapAltitude;
+	static bool getMapAltitude(int* altitude, Site* site) {
+		if (site->data.Altitude != INT_MIN) {
+			*altitude = site->data.Altitude;
 			return true;
 		}
 		else {
-			setErrorMessage( { "Map topography does not exist", Errors::ToFrom::Read, Errors::ToFrom::None } );
 			return false;
 		}
 	}
-	bool setMapTemperature(int temperature) {
-		if (_mapTemperature != INT_MIN) {
-			setErrorMessage( { "Map temperature already exists", Errors::ToFrom::Create, Errors::ToFrom::None } );
+	static bool setMapTemperature(int temperature, Site* site) {
+		if (site->data.Temperature != INT_MIN) {
 			return false;
 		}
 		else {
-			_mapTemperature = temperature;
+			site->data.Temperature = temperature;
 			return true;
 		}
 	}
-	bool getMapTemperatuire(int* temperature) {
-		if (_mapTemperature != INT_MIN) {
-			*temperature = _mapTemperature;
+	static bool getMapTemperatuire(int* temperature, Site* site) {
+		if (site->data.Temperature != INT_MIN) {
+			*temperature = site->data.Temperature;
 			return true;
 		}
 		else {
-			setErrorMessage( { "Map temperature does not exist", Errors::ToFrom::Read, Errors::ToFrom::None } );
 			return false;
 		}
 	}
@@ -433,72 +334,47 @@ public:
 
 	// Breakthroughs
 #pragma region Breakthroughs
-	bool setBreakthrough(Sites::Header BTRnumber, Breakthroughs::breakthrough_Enum type) {
-		if (BTRnumber < Sites::Header::Breakthrough1 || BTRnumber > Sites::Header::Breakthrough13)
+	static bool setBreakthrough(Header::Headers BTRnumber, Breakthroughs::breakthrough_Enum type, Site* site) {
+		if (BTRnumber < Header::Headers::Breakthrough1 || BTRnumber > Header::Headers::Breakthrough13)
 		{
-			setErrorMessage( { "Given Header is not a Breakthrough header", Errors::ToFrom::Create, Errors::ToFrom::None } );
 			return false;
 		}
+		if (site->_breakthroughs == nullptr) {
+			site->_breakthroughs = new std::map<Header::Headers, Breakthroughs::breakthrough_Enum>();
+		}
 
-		std::map<Sites::Header, Breakthroughs::breakthrough_Enum>::iterator btrIt;
-		btrIt = _breakthroughs.find(BTRnumber);
-		if (btrIt == _breakthroughs.end())
+		std::map<Header::Headers, Breakthroughs::breakthrough_Enum>::iterator btrIt;
+		btrIt = site->_breakthroughs->find(BTRnumber);
+		if (btrIt == site->_breakthroughs->end())
 		{
-			_breakthroughs[BTRnumber] = type;
+			site->_breakthroughs->insert_or_assign(BTRnumber, type);
 			return true;
 		}
 		else {
-			setErrorMessage( { "Breakthroug already set", Errors::ToFrom::Create, Errors::ToFrom::None } );
 			return false;
 		}
 	}
-	bool getBreakthrough(Sites::Header number, Breakthroughs::breakthrough_Enum* type) {
-		if (number < Sites::Header::Breakthrough1 || number > Sites::Header::Breakthrough13)
-		{
-			setErrorMessage( {"Given Header is not a Breakthrough Number", Errors::ToFrom::Create, Errors::ToFrom::None} );
-			return false;
-		}
 
-		std::map<Sites::Header, Breakthroughs::breakthrough_Enum>::iterator btrIt;
-		btrIt = _breakthroughs.find(number);
-		if (btrIt == _breakthroughs.end())
-		{
-			setErrorMessage( {"BreakthroughNumber does not exist in Breakthroughs", Errors::ToFrom::Read, Errors::ToFrom::None} );
-			return false;
-		}
-		else {
-			*type = btrIt->second;
-			return true;
-		}
-	}
-	std::vector<Breakthroughs::breakthrough_Enum> getAllBreakthroughs() {
-		if (_cachedBreakthroughs.size() > 0)
-		{
-			return _cachedBreakthroughs;
-		}
+	static bool finaliseBreakthroughs(Site* site) {
+		std::map<Header::Headers, Breakthroughs::breakthrough_Enum>::iterator btrIt;
 
-		std::map<Sites::Header, Breakthroughs::breakthrough_Enum>::iterator btrIt;
-
-		for (size_t i = Sites::Header::Breakthrough1; i < Sites::Header::End; i++)
+		int cachedIndex = 0;
+		for (size_t i = Header::Headers::Breakthrough1; i < Header::Headers::End; i++)
 		{
-			btrIt = _breakthroughs.find((Sites::Header)i);
-			if (btrIt != _breakthroughs.end())
+			btrIt = site->_breakthroughs->find((Header::Headers)i);
+			if (btrIt != site->_breakthroughs->end())
 			{
-				_cachedBreakthroughs.push_back(btrIt->second);
+				site->_cachedBreakthroughs[cachedIndex] = btrIt->second;
+				cachedIndex++;
 			}
 		}
-		return _cachedBreakthroughs;
-	}
-#pragma endregion
-	
-	// IError
-// IErrored publics
-	Errors::ErrorMessage getErrorPublic() override {
-		return getErrorMessage();
-	}
-	bool hasErroredPublic() override {
-		return hasErrored();
+		delete site->_breakthroughs;
+		site->_breakthroughs = nullptr;
+		return true;
 	}
 
-	friend Site;
-};
+	static std::array<Breakthroughs::breakthrough_Enum, 13>* getAllBreakthroughs(Site* site) {
+		return &site->_cachedBreakthroughs;
+	}
+#pragma endregion
+}
