@@ -10,15 +10,25 @@ include(FetchContent)
 
 # Set versions
 set(HTTPLIB_VERSION 0.27.0)
+set(NLOJSON_VERSION 3.12.0)
 
 #get httplib
 FetchContent_Declare(
 httplib
 URL https://github.com/yhirose/cpp-httplib/archive/refs/tags/v${HTTPLIB_VERSION}.tar.gz
-FIND_PACKAGE_ARGS ${RAYLIB_VERSION} EXACT
+FIND_PACKAGE_ARGS ${HTTPLIB_VERSION} EXACT
 )
 set(BUILD_EXAMPLES OFF CACHE INTERNAL "")
 FetchContent_MakeAvailable(httplib)
+
+#get nlo_json
+FetchContent_Declare(
+nlo_json
+URL https://github.com/nlohmann/json/archive/refs/tags/v${NLOJSON_VERSION}.tar.gz
+FIND_PACKAGE_ARGS ${NLOJSON_VERSION} EXACT
+)
+set(BUILD_EXAMPLES OFF CACHE INTERNAL "")
+FetchContent_MakeAvailable(nlo_json)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -33,8 +43,14 @@ target_include_directories(Surviving_Maps_CPP PRIVATE ${CMAKE_CURRENT_SOURCE_DIR
 target_include_directories(Surviving_Maps_CPP PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/Include/SearchContext)
 
 target_link_libraries(${PROJECT_NAME} httplib)
+target_link_libraries(${PROJECT_NAME} nlohmann_json::nlohmann_json)
 
 add_custom_command(TARGET Surviving_Maps_CPP POST_BUILD
 	COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
 	"${PROJECT_SOURCE_DIR}/CSVMapData/"
 	"${CMAKE_CURRENT_BINARY_DIR}/CSVMapData/")
+
+add_custom_command(TARGET Surviving_Maps_CPP POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+	"${PROJECT_SOURCE_DIR}/ChangeFaqData/"
+	"${CMAKE_CURRENT_BINARY_DIR}/ChangeFaqData/")

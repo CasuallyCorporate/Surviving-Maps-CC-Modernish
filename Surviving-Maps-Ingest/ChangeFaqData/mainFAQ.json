@@ -1,0 +1,34 @@
+[
+    {
+      "title": "What is this?",
+      "items": [
+        "This is a web-app designed for players of Surviving Mars to be able to locate a landing area that is suitable for the mission they are planning. It allows a landing area to be chosen based on the resources, distasters and breakthroughs, as well as some more advanced settings, such as topography."
+      ]
+    },
+    {
+        "title": "What is the source of the data?",
+        "items": [
+            "The data is provided by ChoGGi, and is used in this model in the original CSV format provided."
+        ]
+    },
+    {
+        "title": "How do I report a bug or ask for a feature?",
+        "items": [
+            "Please raise any bugs/feature requests on the GitHub <a href=\"https://github.com/CasuallyCorporate/Surviving-Maps-CC/discussions\">discussion page.</a>"
+        ]
+    },
+    {
+        "title": "How can I help?",
+        "items": [
+            "This isn't an 'active' project in the normal sense of the word. The original project (as far as I can tell) has not been maintained since 2022. I'm going to be focusing on the architecture of how this project works rather than the code. The aim is to get this project as cache-able as possible, so that responsiveness is more tolerable."
+        ]
+    },
+    {
+        "title": "Can I contribute? Help with costs?",
+        "items": [
+            "If you believe I do deserve some kickback for hosting/updating this, I would ask that you support my efforts with Anti-Real Media through the Ko-Fi instead with a one-time support: <a href=\"https://ko-fi.com/antirealmedia\">https://ko-fi.com/antirealmedia</a>",
+            "This is because I genuinely don't need the money personally, but I am slowly setting up a pathway for people to learn programming generically, make their own game-development (or software) portfolio, and engage in game development in a more professional environment.",
+            "More info here: <a href=\"https://anti-real.media/\">https://anti-real.media/</a> (Apologies, The website is always in various stages of readiness...)"
+        ]
+    }
+]

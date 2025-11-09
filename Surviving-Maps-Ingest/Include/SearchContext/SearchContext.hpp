@@ -3,13 +3,17 @@
 #include <map>
 #include <optional>
 
+#include <nlohmann/json.hpp>
+
 #include "GameVariant.hpp"
+
+using json = nlohmann::json;
 
 class SearchContext {
 private:
 	std::map<std::string, std::unique_ptr<GameVariant>>* _mapVariantsPtr;
 	GameVariant* _variant;
-	std::string _inputJson;
+	json* _inputJson;
 
 	// Parsed Request JSON
 
@@ -18,13 +22,15 @@ private:
 		return std::optional<std::string>();
 	}
 public:
-	SearchContext(std::map<std::string, std::unique_ptr<GameVariant>>* variantsPtr) {
+	SearchContext(
+		std::map<std::string, std::unique_ptr<GameVariant>>* variantsPtr,
+		json* inputJson
+	){
+		_inputJson = inputJson;
 		_mapVariantsPtr = variantsPtr;
 	};
 
-	void change_context(std::string * inputJson) {
-		_inputJson = std::move(inputJson);
-	}
-
-
+	json runSearch() {
+		return json({});
+	};
 };

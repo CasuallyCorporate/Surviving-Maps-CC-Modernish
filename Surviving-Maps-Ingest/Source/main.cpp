@@ -4,11 +4,16 @@
 #include <vector>
 #include <thread>
 #include <csignal>
+#include <shared_mutex>
 
 #include <httplib.h>
+#include <nlohmann/json.hpp>
 
 #include "IErrors.hpp"
 #include "GameVariant.hpp"
+#include "ingestChangeFaq.hpp"
+
+using json = nlohmann::json;
 
 /* Main
 *  - Holds the variants themselves in memory
@@ -21,6 +26,10 @@ IErrors _error_obj;
 
 std::vector<std::thread> _ingestThreads;
 
+// Cached json change/faq
+json _faq = json({});
+json _changelog = json({});
+
 httplib::Server* _SrvPointer = nullptr;
 
 void stopSrvSignalHandler(int sig) {
@@ -29,7 +38,40 @@ void stopSrvSignalHandler(int sig) {
 	}
 }
 
+// Json checks
+bool checkRequestMOTD(json& reqjson, json** returnJson) {
+	auto page = reqjson.find("page");
+	if (page != reqjson.end()) {
+		if (page.value().is_string()) {
+			std::string strval;
+			page.value().get_to(strval);
+
+			if (strval == "Changelog") {
+				*returnJson = &_changelog;
+				return true;
+			}
+			if (strval == "FAQ") {
+				*returnJson = &_faq;
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 int main(/*int args, char* argv[]*/) {
+	std::cout << "<!! Setting up cached/static json responses !!>\n";
+
+	// Setup cached json responses
+	if (!interperetFaqJson(&_faq)) {
+		std::cout << "<!!!! Failed to ingest faq json !!!!>\n";
+		return -1;
+	}
+	if (!iterperetChangelogJson(&_changelog)) {
+		std::cout << "<!!!! Failed to ingest changelog json !!!!>\n";
+		return -1;
+	}
+
 	std::cout << "<!! Setting variants !!>\n";
 
 	// Insert all variants to process
@@ -73,20 +115,77 @@ int main(/*int args, char* argv[]*/) {
 		srv.new_task_queue = [] { return new httplib::ThreadPool(1); };
 	}
 
-	srv.Post("/motd", [](const httplib::Request&, httplib::Response& res) {
-		res.set_content("{ \"Response\":\"Not implemented\"}", "application/json");
+	const std::string MimeTypeJson = "application/json";
+	const std::string ErrorParseResponse = "{ \"Response\":\"Error: JSON parse\"}";
+
+	srv.Post("/motd", [&MimeTypeJson, &ErrorParseResponse](
+		const httplib::Request& req, httplib::Response& res){
+		json reqJson = json({});
+		try {
+			reqJson = json::parse(req.body);
+		}
+		catch (...) {
+			res.status = httplib::StatusCode::BadRequest_400;
+			res.set_content(ErrorParseResponse, MimeTypeJson);
+			return;
+		}
+
+		json* retJson = nullptr;
+		if (checkRequestMOTD(reqJson, &retJson)) {
+			if (retJson != nullptr) {
+				res.status = httplib::StatusCode::OK_200;
+				res.set_content(retJson->dump(), MimeTypeJson);
+				return;
+			}
+		}
+		else {
+			res.status = httplib::StatusCode::BadRequest_400;
+			res.set_content(ErrorParseResponse, MimeTypeJson);
+			return;
+		}
+
+		res.status = httplib::StatusCode::InternalServerError_500;
+		res.set_content(ErrorParseResponse, MimeTypeJson);
+		return;
 	});
 
-	srv.Post("/site", [](const httplib::Request&, httplib::Response& res) {
-		res.set_content("{ \"Response\":\"Not implemented\"}", "application/json");
+	srv.Post("/site", [&MimeTypeJson, &ErrorParseResponse](
+		const httplib::Request& req, httplib::Response& res) {
+		json reqJson = json({});
+		try {
+			res.status = httplib::StatusCode::BadRequest_400;
+			reqJson = json::parse(req.body);
+		}
+		catch (...) {
+			res.set_content(ErrorParseResponse, MimeTypeJson);
+			return;
+		}
 	});
 
-	srv.Post("/page", [](const httplib::Request&, httplib::Response& res) {
-		res.set_content("{ \"Response\":\"Not implemented\"}", "application/json");
+	srv.Post("/page", [&MimeTypeJson, &ErrorParseResponse](
+		const httplib::Request& req, httplib::Response& res) {
+		json reqJson = json({});
+		try {
+			res.status = httplib::StatusCode::BadRequest_400;
+			reqJson = json::parse(req.body);
+		}
+		catch (...) {
+			res.set_content(ErrorParseResponse, MimeTypeJson);
+			return;
+		}
 	});
 
-	srv.Post("/coord", [](const httplib::Request&, httplib::Response& res) {
-		res.set_content("{ \"Response\":\"Not implemented\"}", "application/json");
+	srv.Post("/coord", [&MimeTypeJson, &ErrorParseResponse](
+		const httplib::Request& req, httplib::Response& res) {
+		json reqJson = json({});
+		try {
+			reqJson = json::parse(req.body);
+		}
+		catch (...) {
+			res.status = httplib::StatusCode::BadRequest_400;
+			res.set_content(ErrorParseResponse, MimeTypeJson);
+			return;
+		}
 	});
 
 	// setup stop signals
