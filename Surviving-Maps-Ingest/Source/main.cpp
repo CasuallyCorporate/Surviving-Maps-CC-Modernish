@@ -59,6 +59,25 @@ bool checkRequestMOTD(json& reqjson, json** returnJson) {
 	return false;
 }
 
+bool checkRequestSite(json& reqjson) {
+	if (auto resp = reqjson.find("SiteID"); resp != reqjson.end()) {
+		if (!resp.value().is_number()) {
+			return false;
+		}
+		/* fall-through */
+	}
+	else return false;
+
+	if (auto resp = reqjson.find("VariantSystem"); resp != reqjson.end()) {
+		if (!resp.value().is_string()) {
+			return false;
+		}
+		/* fall-through */
+	}else return false;
+
+	return true;
+}
+
 int main(/*int args, char* argv[]*/) {
 	std::cout << "<!! Setting up cached/static json responses !!>\n";
 
@@ -153,23 +172,50 @@ int main(/*int args, char* argv[]*/) {
 		const httplib::Request& req, httplib::Response& res) {
 		json reqJson = json({});
 		try {
-			res.status = httplib::StatusCode::BadRequest_400;
 			reqJson = json::parse(req.body);
 		}
 		catch (...) {
+			res.status = httplib::StatusCode::BadRequest_400;
 			res.set_content(ErrorParseResponse, MimeTypeJson);
 			return;
 		}
+
+		if (checkRequestSite(reqJson)) {
+			// Check variants for VariantSystem
+			auto sysResp = _variantMap.find(reqJson["VariantSystem"]);
+			if (sysResp != _variantMap.end()) {
+				// Get site info from variant
+				json siteJson;
+				if (sysResp->second->getSiteAsJson(reqJson["SiteID"], &siteJson)) {
+					res.status = httplib::StatusCode::OK_200;
+					res.set_content(siteJson.dump(), MimeTypeJson);
+					return;
+				}
+			}
+
+			res.status = httplib::StatusCode::BadRequest_400;
+			res.set_content(ErrorParseResponse, MimeTypeJson);
+			return;
+		}
+		else {
+			res.status = httplib::StatusCode::BadRequest_400;
+			res.set_content(ErrorParseResponse, MimeTypeJson);
+			return;
+		}
+
+		res.status = httplib::StatusCode::InternalServerError_500;
+		res.set_content(ErrorParseResponse, MimeTypeJson);
+		return;
 	});
 
 	srv.Post("/page", [&MimeTypeJson, &ErrorParseResponse](
 		const httplib::Request& req, httplib::Response& res) {
 		json reqJson = json({});
 		try {
-			res.status = httplib::StatusCode::BadRequest_400;
 			reqJson = json::parse(req.body);
 		}
 		catch (...) {
+			res.status = httplib::StatusCode::BadRequest_400;
 			res.set_content(ErrorParseResponse, MimeTypeJson);
 			return;
 		}

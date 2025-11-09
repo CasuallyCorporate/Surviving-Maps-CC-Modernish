@@ -6,7 +6,7 @@
 #pragma once
 
 namespace Header {
-	static const enum Headers : uint8_t {
+	const enum Headers : uint8_t {
 		LatitudeDeg, LatitudeNS, LongitudeDeg, LongitudeEW,
 
 		Metals, RareMetals, Concrete, Water,

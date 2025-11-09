@@ -6,11 +6,16 @@
 #include <iostream>
 #include <syncstream>
 
+#include <nlohmann/json.hpp>
+
 #include "IErrors.hpp"
 #include "Breakthroughs.hpp"
 #include "CSVIngest.hpp"
 
 #include "VariantData/DataColumnStore.hpp"
+#include "Site/Headers.hpp"
+
+using json = nlohmann::json;
 
 class GameVariant {
 private:
@@ -68,5 +73,57 @@ public:
 		delete _csvURL;
 
 		coutStream << "<--- Finished Ingesting: " << _variantName << " --> " << std::endl;
+	}
+
+	bool getSiteAsJson(const int siteid, json* retJson) {
+		Sites::SiteData retSite;
+
+		if(_Data.get()->getSiteData(siteid, &retSite)) {
+			json ret = json({});
+			ret["VariantSystem"] = _variantName;
+			ret["SiteID"] = siteid;
+			ret["Coordinate"] = {
+				{"NSNum", retSite.Latitude},
+				{"NSChar", retSite.LatNS},
+				{"EWNum", retSite.Longitude},
+				{"EWChar", retSite.LongEW}
+			};
+			ret["NamedLandingSYS"] = retSite.MapLocation;
+			ret["TopographySYS"] = retSite.MapTopography;
+			ret["MapName"] = retSite.MapName;
+			ret["Challenge"] = retSite.DifficultyChallenge;
+			ret["Altitude"] = retSite.Altitude;
+			ret["Temperature"] = retSite.Temperature;
+
+			ret["DustDevils"] = retSite.Disasters.at(0);
+			ret["DustStorms"] = retSite.Disasters.at(1);
+			ret["Meteors"] = retSite.Disasters.at(2);
+			ret["ColdWaves"] = retSite.Disasters.at(3);
+
+			ret["Metals"] = retSite.Resources.at(0);
+			ret["RareMetals"] = retSite.Resources.at(1);
+			ret["Concrete"] = retSite.Resources.at(2);
+			ret["Water"] = retSite.Resources.at(3);
+
+			ret["MissingBreakthroughs"] = 0; // ????????????????????????????????????????????????????????????
+
+			json btrArray = json::array();
+			size_t arrayLen = retSite.Breakthroughs.bitset.size();
+			for (size_t i = 0; i < arrayLen; i++)
+			{
+				if (retSite.Breakthroughs.bitset[i]) {
+					if (auto retSYS = Breakthroughs::EnumToSYS.find((Breakthroughs::breakthrough_Enum)i); retSYS != Breakthroughs::EnumToSYS.end()) {
+						btrArray.emplace_back(retSYS->second);
+					}
+					else return false;
+				}
+			}
+			ret["Breakthroughs"] = btrArray;
+
+			*retJson = std::move(ret);
+			return true;
+		}
+
+		return false;
 	}
 };
