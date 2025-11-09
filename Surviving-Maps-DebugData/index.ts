@@ -47,7 +47,7 @@ function setupFAQHTML() {
     // Insert into FAQHTML
     FAQHTML.addText("<h2>CasuallyCorporate/Surviving-Maps-CC-Modernish</h2>");
     faqitems.forEach(element => {
-        FAQHTML.addText("<h3><u>Version: " + element.title + "</u></h3>");
+        FAQHTML.addText("<h3><u>" + element.title + "</u></h3>");
         FAQHTML.addText("<ul>");
         element.items.forEach(thing => {
             FAQHTML.addText("<li>" + thing +"</li>");
