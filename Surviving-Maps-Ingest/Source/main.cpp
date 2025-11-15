@@ -38,7 +38,7 @@ void stopSrvSignalHandler(int sig) {
 	}
 }
 
-// Json checks
+// Json valididty checks only. Not contents validy checks.
 bool checkRequestMOTD(json& reqjson, json** returnJson) {
 	auto page = reqjson.find("page");
 	if (page != reqjson.end()) {
@@ -76,6 +76,20 @@ bool checkRequestSite(json& reqjson) {
 	}else return false;
 
 	return true;
+}
+
+/// Can only check the minimum, needs further checks for optional parameters later
+bool checkRequestPage(json& reqjson) {
+	if (auto resp = reqjson.find("Simple"); resp != reqjson.end()) {
+		if (resp.value().is_object()) {
+			// check variant
+			if (auto varresp = resp.value().find("Variant"); varresp != resp.value().end()) {
+				return true;
+			}
+		}
+	}
+	
+	return false;
 }
 
 int main(/*int args, char* argv[]*/) {
@@ -191,11 +205,13 @@ int main(/*int args, char* argv[]*/) {
 					res.set_content(siteJson.dump(), MimeTypeJson);
 					return;
 				}
+				/* Fall through 500 */
 			}
-
-			res.status = httplib::StatusCode::BadRequest_400;
-			res.set_content(ErrorParseResponse, MimeTypeJson);
-			return;
+			else {
+				res.status = httplib::StatusCode::BadRequest_400;
+				res.set_content(ErrorParseResponse, MimeTypeJson);
+				return;
+			}
 		}
 		else {
 			res.status = httplib::StatusCode::BadRequest_400;
@@ -219,6 +235,35 @@ int main(/*int args, char* argv[]*/) {
 			res.set_content(ErrorParseResponse, MimeTypeJson);
 			return;
 		}
+
+		if (checkRequestPage(reqJson)) {
+			// check variants for map
+			auto sysResp = _variantMap.find(reqJson["Simple"]["Variant"]);
+			if (sysResp != _variantMap.end()) {
+				// Get site info from variant
+				json pageJson;
+				if (sysResp->second->getPageAsJson(&reqJson, &pageJson)) {
+					res.status = httplib::StatusCode::OK_200;
+					res.set_content(pageJson.dump(), MimeTypeJson);
+					return;
+				}
+				/* Fall through 500 */
+			}
+			else {
+				res.status = httplib::StatusCode::BadRequest_400;
+				res.set_content(ErrorParseResponse, MimeTypeJson);
+				return;
+			}
+		}
+		else {
+			res.status = httplib::StatusCode::BadRequest_400;
+			res.set_content(ErrorParseResponse, MimeTypeJson);
+			return;
+		}
+
+		res.status = httplib::StatusCode::InternalServerError_500;
+		res.set_content(ErrorParseResponse, MimeTypeJson);
+		return;
 	});
 
 	srv.Post("/coord", [&MimeTypeJson, &ErrorParseResponse](

@@ -316,4 +316,7 @@ public:
 	size_t getMaxSites() {
 		return _maxEntries;
 	}
+
+	// Search the data
+
 };

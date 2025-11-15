@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <iostream>
 #include <syncstream>
+#include <optional>
 
 #include <nlohmann/json.hpp>
 
@@ -13,6 +14,7 @@
 #include "CSVIngest.hpp"
 
 #include "VariantData/DataColumnStore.hpp"
+#include "VariantData/RequestData.hpp"
 #include "Site/Headers.hpp"
 
 using json = nlohmann::json;
@@ -75,6 +77,7 @@ public:
 		coutStream << "<--- Finished Ingesting: " << _variantName << " --> " << std::endl;
 	}
 
+	// Json gets
 	bool getSiteAsJson(const int siteid, json* retJson) {
 		Sites::SiteData retSite;
 
@@ -123,6 +126,116 @@ public:
 			*retJson = std::move(ret);
 			return true;
 		}
+
+		return false;
+	}
+
+	bool convertToValueComparitor(std::optional<RequestData::ValueComparitor>* ret, std::string itemName, json& itemObject) {
+		int retNum = 0;
+		if (auto itemres = itemObject.find(itemName); itemres != itemObject.end()) {
+			if (auto numres = itemres.value().find("Number"); numres != itemres.value().end()) {
+				if (!numres.value().is_number_integer()) return false;
+				retNum = numres.value();
+			} else return false;
+			if (auto compres = itemres.value().find("comparitor"); compres != itemres.value().end()) {
+				std::optional<RequestData::Comparitor> compopt = RequestData::getComparitor(compres.value());
+				if (compopt) {
+					*ret = { retNum, compopt.value() };
+					return true;
+				} else return false;
+			}
+		}
+
+		return false;
+	}
+
+	bool getPageAsJson(const json* request, json* retJson) {
+		
+		// GetPageNum
+		std::optional<int> page = {};
+		if (auto resp = request->find("PageNum"); resp != request->end()) {
+			if (!resp.value().is_number_integer()) return false;
+			page = resp.value();
+		}
+
+		// GetSorting
+		std::optional<RequestData::Sorting> sorting = {};
+		if (auto resp = request->find("Sorting"); resp != request->end()) {
+			Header::Headers itemHdr = Header::Headers::End;
+
+			if (auto itemres = resp.value().find("SortItem"); itemres != resp.value().end()) {
+				if (!itemres.value().is_string()) return false;
+				if (auto headerres = Header::csvToHeader.find(itemres.value()); headerres != Header::csvToHeader.end()) {
+					itemHdr = headerres->second;
+				} else return false;
+			} else return false;
+
+			if (auto lowres = resp.value().find("isLowest"); lowres != resp.value().end()) {
+				if (!lowres.value().is_boolean()) return false;
+				sorting = {itemHdr, lowres.value()};
+			}
+		}
+
+		// simple:
+		RequestData::PageSimple pgSimple;
+		json simple;
+		if (auto ressimple = request->find("Simple"); ressimple != request->end()) {
+			if (!ressimple.value().is_object()) return false;
+			simple = ressimple.value();
+		} else return false;
+
+		// get Disasters num & comparitor
+		convertToValueComparitor(&pgSimple.Disasters, "Disasters", simple);
+
+		// get Resources num & comparitor
+		convertToValueComparitor(&pgSimple.Resources, "Resources", simple);
+
+		// complex:
+		std::optional<RequestData::PageComplex> pgComplex;
+		std::optional<json> complex;
+		if (auto rescomplex = request->find("Complex"); rescomplex != request->end()) {
+			if (!rescomplex.value().is_object()) return false;
+			complex = rescomplex.value();
+		}
+
+		if (complex) {
+			if (auto compDis = complex.value().find("Disasters"); compDis != complex.value().end()) {
+				RequestData::ComplexDisasters retDis;
+				// get from Disasters
+
+				convertToValueComparitor(&retDis.ColdWaves, "ColdWaves", compDis.value());
+				convertToValueComparitor(&retDis.DustDevils, "DustDevils", compDis.value());
+				convertToValueComparitor(&retDis.DustStorms, "DustStorms", compDis.value());
+				convertToValueComparitor(&retDis.Meteors, "Meteors", compDis.value());
+
+				if (retDis.ColdWaves || retDis.DustDevils || retDis.DustStorms || retDis.Meteors) {
+					pgComplex = { retDis, {} };
+				} else return false;
+			}
+			if (auto compRes = complex.value().find("Resources"); compRes != complex.value().end()) {
+				RequestData::ComplexResources retRes;
+				// get from Resources
+
+				convertToValueComparitor(&retRes.Concrete, "Concrete", compRes.value());
+				convertToValueComparitor(&retRes.Metal, "Metal", compRes.value());
+				convertToValueComparitor(&retRes.RareMetal, "RareMetal", compRes.value());
+				convertToValueComparitor(&retRes.Water, "Water", compRes.value());
+
+				if (retRes.Concrete || retRes.Metal || retRes.RareMetal || retRes.Water) {
+					if (pgComplex) {
+						pgComplex.value().Resources = retRes;
+					}
+					else {
+						pgComplex = { {}, retRes };
+					}
+				} else return false;
+			}
+			else {
+				if (!pgComplex.value().Disasters) return false;
+			}
+		}
+
+		// Do the search
 
 		return false;
 	}
