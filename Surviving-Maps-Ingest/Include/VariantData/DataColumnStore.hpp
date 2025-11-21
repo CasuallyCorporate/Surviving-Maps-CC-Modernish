@@ -4,7 +4,13 @@
 #include <vector>
 #include <set>
 
+#include <nlohmann/json.hpp>
+
 #include "Site/Headers.hpp"
+#include "RequestData.hpp"
+#include "RequestResponse.hpp"
+
+using json = nlohmann::json;
 
 class DataColumnStore {
 private:
@@ -318,5 +324,279 @@ public:
 	}
 
 	// Search the data
+	bool searchData(
+		json* retJson, std::string** error_ptr_ptr,
+		std::string variantName,
+		std::optional<std::set<Breakthroughs::breakthrough_Enum>> breakthroughFilters,
+		RequestData::PageSimple pgSimple,
+		std::optional<RequestData::PageComplex> pgComplex,
+		std::optional<RequestData::SortingRequest> sorting,
+		std::optional<int> page
+		) {
+		std::vector<uint16_t> valueIndexes;
+		// Search from most diverse data source to least
 
+		// Breakthroughs
+		if (breakthroughFilters) {
+			Breakthroughs::btrData* sitebtrs = nullptr;
+			bool bitsset = true;
+			for (size_t i = 0; i < _maxEntries; i++)
+			{
+				sitebtrs = &_Breakthoughs[i];
+				for (auto btr : breakthroughFilters.value()) {
+					if (!sitebtrs->bitset.test(btr)) {
+						bitsset = false;
+						break;
+					}
+				}
+				if (bitsset) {
+					// add to pile
+					valueIndexes.emplace_back(i);
+				}
+				else {
+					// reset
+					bitsset = true;
+					// implicit continue
+				}
+			}
+			if (valueIndexes.size() == 0) {
+				*error_ptr_ptr = &RequestResponse::ErrorNoResults;
+				return false;
+			}
+		}
+
+		// simple resources
+		if (pgSimple.Resources || pgSimple.Disasters) {
+			if (pgSimple.Resources) {
+				std::vector<uint16_t> inner;
+				uint8_t total = 0;
+
+				if (valueIndexes.size() > 0) {
+					for (auto siteid : valueIndexes) {
+						total = 0;
+						total += _Metals[siteid];
+						total += _RareMetals[siteid];
+						total += _Concrete[siteid];
+						total += _Water[siteid];
+
+						switch (pgSimple.Resources.value().comparitor)
+						{
+						case RequestData::LessEqual:
+							if (total <= pgSimple.Resources.value().value) {
+								inner.emplace_back(siteid);
+							}
+							break;
+						case RequestData::Equal:
+							if (total == pgSimple.Resources.value().value) {
+								inner.emplace_back(siteid);
+							}
+							break;
+						case RequestData::MoreEqual:
+							if (total >= pgSimple.Resources.value().value) {
+								inner.emplace_back(siteid);
+							}
+							break;
+						}
+					}
+				}
+				else {
+					for (size_t i = 0; i < _maxEntries; i++)
+					{
+						total = 0;
+						total += _Metals[i];
+						total += _RareMetals[i];
+						total += _Concrete[i];
+						total += _Water[i];
+
+						switch (pgSimple.Resources.value().comparitor)
+						{
+						case RequestData::LessEqual:
+							if (total <= pgSimple.Resources.value().value) {
+								inner.emplace_back(i);
+							}
+							break;
+						case RequestData::Equal:
+							if (total == pgSimple.Resources.value().value) {
+								inner.emplace_back(i);
+							}
+							break;
+						case RequestData::MoreEqual:
+							if (total >= pgSimple.Resources.value().value) {
+								inner.emplace_back(i);
+							}
+							break;
+						}
+					}
+				}
+				if (inner.size() == 0) {
+					*error_ptr_ptr = &RequestResponse::ErrorNoResults;
+					return false;
+				}
+				else {
+					valueIndexes = inner;
+				}
+			}
+			if (pgSimple.Disasters) {
+				std::vector<uint16_t> inner;
+				uint8_t total = 0;
+
+				if (valueIndexes.size() > 0) {
+					for (auto siteid : valueIndexes) {
+						total = 0;
+						total += _DustStorms[siteid];
+						total += _DustDevils[siteid];
+						total += _Meteors[siteid];
+						total += _ColdWaves[siteid];
+
+						switch (pgSimple.Disasters.value().comparitor)
+						{
+						case RequestData::LessEqual:
+							if (total <= pgSimple.Disasters.value().value) {
+								inner.emplace_back(siteid);
+							}
+							break;
+						case RequestData::Equal:
+							if (total == pgSimple.Disasters.value().value) {
+								inner.emplace_back(siteid);
+							}
+							break;
+						case RequestData::MoreEqual:
+							if (total >= pgSimple.Disasters.value().value) {
+								inner.emplace_back(siteid);
+							}
+							break;
+						}
+					}
+				}
+				else {
+					for (size_t i = 0; i < _maxEntries; i++)
+					{
+						total = 0;
+						total += _DustStorms[i];
+						total += _DustDevils[i];
+						total += _Meteors[i];
+						total += _ColdWaves[i];
+
+						switch (pgSimple.Disasters.value().comparitor)
+						{
+						case RequestData::LessEqual:
+							if (total <= pgSimple.Disasters.value().value) {
+								inner.emplace_back(i);
+							}
+							break;
+						case RequestData::Equal:
+							if (total == pgSimple.Disasters.value().value) {
+								inner.emplace_back(i);
+							}
+							break;
+						case RequestData::MoreEqual:
+							if (total >= pgSimple.Disasters.value().value) {
+								inner.emplace_back(i);
+							}
+							break;
+						}
+					}
+				}
+				if (inner.size() == 0) {
+					*error_ptr_ptr = &RequestResponse::ErrorNoResults;
+					return false;
+				}
+				else {
+					valueIndexes = inner;
+				}
+			}
+		}
+		else if (pgComplex){
+
+		}
+
+		// End with sorting
+		if (sorting) {
+
+		}
+
+		// Split the results into 20 item pages
+		uint16_t pages = 0, remvalues = valueIndexes.size();
+		while (remvalues > 20) {
+			pages++;
+			remvalues -= 20;
+		}
+		if (remvalues > 0) {
+			pages++;
+		}
+		pages++;
+
+		uint16_t pagereq = 1;
+		std::pair<uint16_t, uint16_t> focused_range = { 0,20 };
+
+		// Get specific page?
+		if (page) {
+			pagereq = page.value();
+			// generate specific page json
+			if (page.value() > 0 && page.value() <= pages) {
+				focused_range.first = (page.value() - 1) * 20;
+				if (focused_range.first + 20 > valueIndexes.size()) {
+					focused_range.second = valueIndexes.size();
+				}
+				else {
+					focused_range.second = focused_range.first + 20;
+				}
+			}
+			else {
+				*error_ptr_ptr = &RequestResponse::ErrorProcessing;
+				return false;
+			}
+		}
+
+		// generate page json
+		json returnPage;
+		returnPage["VariantSystem"] = variantName;
+		returnPage["PageNum"] = pagereq;
+		returnPage["PageTot"] = pages;
+		json pageSites = json::array({});
+		Sites::SiteData tmpSite;
+		json tmpSiteObject = json::object({});
+		uint16_t siteIndex = 0;
+		for (size_t i = focused_range.first; i <= focused_range.second; i++)
+		{
+			try
+			{
+				siteIndex = valueIndexes.at(i);
+			}
+			catch (...)
+			{
+				*error_ptr_ptr = &RequestResponse::ErrorProcessing;
+				return false;
+			}
+			if (this->getSiteData(siteIndex, &tmpSite)) {
+				tmpSiteObject["ID"] = siteIndex;
+				std::string coordinate;
+				coordinate += std::to_string(tmpSite.Latitude);
+				coordinate += tmpSite.LatNS;
+				coordinate += ":";
+				coordinate += std::to_string(tmpSite.Longitude);
+				coordinate += tmpSite.LongEW;
+				tmpSiteObject["Coordinates"] = coordinate;
+				tmpSiteObject["DisastersTot"] = tmpSite.Disasters[0] + tmpSite.Disasters[1] + tmpSite.Disasters[2] + tmpSite.Disasters[3]; // DustDevils, DustStorms, Meteors, ColdWaves
+				tmpSiteObject["DustDevils"] = tmpSite.Disasters[0];
+				tmpSiteObject["DustStorms"] = tmpSite.Disasters[1];
+				tmpSiteObject["Meteors"] = tmpSite.Disasters[2];
+				tmpSiteObject["ColdWaves"] = tmpSite.Disasters[3];
+				tmpSiteObject["ResourcesTot"] = tmpSite.Resources[0] + tmpSite.Resources[1] + tmpSite.Resources[2] + tmpSite.Resources[3]; // Metals, RareMetals, Concrete, Water
+				tmpSiteObject["Metal"] = tmpSite.Resources[0];
+				tmpSiteObject["RareMetal"] = tmpSite.Resources[1];
+				tmpSiteObject["Concrete"] = tmpSite.Resources[2];
+				tmpSiteObject["Water"] = tmpSite.Resources[3];
+			}
+			else {
+				*error_ptr_ptr = &RequestResponse::ErrorProcessing;
+				return false;
+			}
+			pageSites.emplace_back(tmpSiteObject);
+		}
+		returnPage["PageSites"] = pageSites;
+
+		*retJson = returnPage;
+		return true;
+	}
 };

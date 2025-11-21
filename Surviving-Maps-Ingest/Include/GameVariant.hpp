@@ -130,7 +130,7 @@ public:
 		return false;
 	}
 
-	bool convertToValueComparitor(std::optional<RequestData::ValueComparitor>* ret, std::string itemName, json& itemObject) {
+	bool convertToValueComparitor(std::optional<RequestData::ValueRequest>* ret, std::string itemName, json& itemObject) {
 		int retNum = 0;
 		if (auto itemres = itemObject.find(itemName); itemres != itemObject.end()) {
 			if (auto numres = itemres.value().find("Number"); numres != itemres.value().end()) {
@@ -138,7 +138,7 @@ public:
 				retNum = numres.value();
 			} else return false;
 			if (auto compres = itemres.value().find("comparitor"); compres != itemres.value().end()) {
-				std::optional<RequestData::Comparitor> compopt = RequestData::getComparitor(compres.value());
+				auto compopt = RequestData::getComparitor(compres.value());
 				if (compopt) {
 					*ret = { retNum, compopt.value() };
 					return true;
@@ -149,32 +149,13 @@ public:
 		return false;
 	}
 
-	bool getPageAsJson(const json* request, json* retJson) {
-		
-		// GetPageNum
-		std::optional<int> page = {};
-		if (auto resp = request->find("PageNum"); resp != request->end()) {
-			if (!resp.value().is_number_integer()) return false;
-			page = resp.value();
-		}
-
-		// GetSorting
-		std::optional<RequestData::Sorting> sorting = {};
-		if (auto resp = request->find("Sorting"); resp != request->end()) {
-			Header::Headers itemHdr = Header::Headers::End;
-
-			if (auto itemres = resp.value().find("SortItem"); itemres != resp.value().end()) {
-				if (!itemres.value().is_string()) return false;
-				if (auto headerres = Header::csvToHeader.find(itemres.value()); headerres != Header::csvToHeader.end()) {
-					itemHdr = headerres->second;
-				} else return false;
-			} else return false;
-
-			if (auto lowres = resp.value().find("isLowest"); lowres != resp.value().end()) {
-				if (!lowres.value().is_boolean()) return false;
-				sorting = {itemHdr, lowres.value()};
-			}
-		}
+	/// <summary>
+	/// RequestJson parsed in the order in which they appear on the website
+	/// </summary>
+	/// <param name="request">pointer to request json</param>
+	/// <param name="retJson">pointer to returned json</param>
+	/// <returns>bool indicates succes</returns>
+	bool getPageAsJson(const json* request, json* retJson, std::string** error_ptr_ptr) {
 
 		// simple:
 		RequestData::PageSimple pgSimple;
@@ -182,13 +163,31 @@ public:
 		if (auto ressimple = request->find("Simple"); ressimple != request->end()) {
 			if (!ressimple.value().is_object()) return false;
 			simple = ressimple.value();
-		} else return false;
+		}
+		else return false;
 
-		// get Disasters num & comparitor
+		// get simple Disasters num & comparitor
 		convertToValueComparitor(&pgSimple.Disasters, "Disasters", simple);
 
-		// get Resources num & comparitor
+		// get simple Resources num & comparitor
 		convertToValueComparitor(&pgSimple.Resources, "Resources", simple);
+
+		// Breakthrough filters
+		std::optional<std::set<Breakthroughs::breakthrough_Enum>> breakthroughFilters = {};
+		if (auto btrSimple = simple.find("BreakthroughFilters"); btrSimple != simple.end()) {
+			if (!btrSimple.value().is_array()) return false;
+			for (json& btr : btrSimple.value())
+			{
+				if (!btr.is_string()) return false;
+				if (auto enumRes = Breakthroughs::SYSToEnum.find(btr); enumRes != Breakthroughs::SYSToEnum.end()) {
+					if (!breakthroughFilters) {
+						breakthroughFilters = std::set<Breakthroughs::breakthrough_Enum>();
+					}
+					breakthroughFilters.value().insert(enumRes->second);
+				}
+				else return false;
+			}
+		}
 
 		// complex:
 		std::optional<RequestData::PageComplex> pgComplex;
@@ -199,19 +198,8 @@ public:
 		}
 
 		if (complex) {
-			if (auto compDis = complex.value().find("Disasters"); compDis != complex.value().end()) {
-				RequestData::ComplexDisasters retDis;
-				// get from Disasters
+			RequestData::PageComplex tmpComplex = RequestData::PageComplex();
 
-				convertToValueComparitor(&retDis.ColdWaves, "ColdWaves", compDis.value());
-				convertToValueComparitor(&retDis.DustDevils, "DustDevils", compDis.value());
-				convertToValueComparitor(&retDis.DustStorms, "DustStorms", compDis.value());
-				convertToValueComparitor(&retDis.Meteors, "Meteors", compDis.value());
-
-				if (retDis.ColdWaves || retDis.DustDevils || retDis.DustStorms || retDis.Meteors) {
-					pgComplex = { retDis, {} };
-				} else return false;
-			}
 			if (auto compRes = complex.value().find("Resources"); compRes != complex.value().end()) {
 				RequestData::ComplexResources retRes;
 				// get from Resources
@@ -222,21 +210,121 @@ public:
 				convertToValueComparitor(&retRes.Water, "Water", compRes.value());
 
 				if (retRes.Concrete || retRes.Metal || retRes.RareMetal || retRes.Water) {
-					if (pgComplex) {
-						pgComplex.value().Resources = retRes;
-					}
-					else {
-						pgComplex = { {}, retRes };
-					}
+					tmpComplex.Resources = retRes;
+				}
+				else return false;
+			}
+			if (auto compDis = complex.value().find("Disasters"); compDis != complex.value().end()) {
+				RequestData::ComplexDisasters retDis;
+				// get from Disasters
+
+				convertToValueComparitor(&retDis.ColdWaves, "ColdWaves", compDis.value());
+				convertToValueComparitor(&retDis.DustDevils, "DustDevils", compDis.value());
+				convertToValueComparitor(&retDis.DustStorms, "DustStorms", compDis.value());
+				convertToValueComparitor(&retDis.Meteors, "Meteors", compDis.value());
+
+				if (retDis.ColdWaves || retDis.DustDevils || retDis.DustStorms || retDis.Meteors) {
+					tmpComplex.Disasters = retDis;
 				} else return false;
 			}
-			else {
-				if (!pgComplex.value().Disasters) return false;
+			if (auto compMap = complex.value().find("Map"); compMap != complex.value().end())
+			{
+				if (!compMap.value().is_object()) return false;
+				if (auto challRes = compMap.value().find("Challenge"); challRes != compMap.value().end()) {
+					convertToValueComparitor(&tmpComplex.MapChallenge, "Challenge", challRes.value());
+				}
+				if (auto mnRes = compMap.value().find("MapName"); mnRes != compMap.value().end()) {
+					if (!mnRes.value().is_array()) return false;
+					for (auto nameIT = mnRes.value().begin(); nameIT != mnRes.value().end(); ++nameIT) {
+						if (!tmpComplex.MapNames) {
+							tmpComplex.MapNames = std::vector<std::string>();
+							tmpComplex.MapNames.value().reserve(mnRes.value().size());
+						}
+						if (nameIT.value().is_string()) {
+							tmpComplex.MapNames.value().emplace_back(nameIT.value());
+						} else return false;
+					}
+				}
+				if (auto naRes = compMap.value().find("NamedArea"); naRes != compMap.value().end()) {
+					if (!naRes.value().is_array()) return false;
+					for (auto nameIT = naRes.value().begin(); nameIT != naRes.value().end(); ++nameIT) {
+						if (!tmpComplex.MapNamedAreas) {
+							tmpComplex.MapNamedAreas = std::vector<std::string>();
+							tmpComplex.MapNamedAreas.value().reserve(naRes.value().size());
+						}
+						if (nameIT.value().is_string()) {
+							tmpComplex.MapNamedAreas.value().emplace_back(nameIT.value());
+						}
+						else return false;
+					}
+				}
+				if (auto topRes = compMap.value().find("Topography"); topRes != compMap.value().end()) {
+					if (!topRes.value().is_array()) return false;
+					for (auto nameIT = topRes.value().begin(); nameIT != topRes.value().end(); ++nameIT) {
+						if (!tmpComplex.MapTopographies) {
+							tmpComplex.MapTopographies = std::vector<std::string>();
+							tmpComplex.MapTopographies.value().reserve(topRes.value().size());
+						}
+						if (nameIT.value().is_string()) {
+							tmpComplex.MapTopographies.value().emplace_back(nameIT.value());
+						}
+						else return false;
+					}
+				}
+			}
+
+			if (tmpComplex.Resources || tmpComplex.Disasters || tmpComplex.MapChallenge ||
+				tmpComplex.MapNames || tmpComplex.MapNamedAreas || tmpComplex.MapTopographies) {
+				pgComplex = std::move(tmpComplex);
+			}
+			else return false;
+		}
+
+		// GetSorting
+		std::optional<RequestData::SortingRequest> sorting = {};
+		if (auto resp = request->find("Sorting"); resp != request->end()) {
+			RequestData::SortingRequest tmpSort;
+
+			if (auto itemres = resp.value().find("SortItem"); itemres != resp.value().end()) {
+				if (!itemres.value().is_string()) return false;
+				if (itemres.value() == "Location") {
+					tmpSort.SortCategory = RequestData::SortingCategory::Location_Coord;
+				}
+				else if (itemres.value() == "Resources") {
+					tmpSort.SortCategory = RequestData::SortingCategory::Resources;
+				}
+				else if (itemres.value() == "Disasters") {
+					tmpSort.SortCategory = RequestData::SortingCategory::Disasters;
+				}
+				else if (auto headerres = Header::csvToHeader.find(itemres.value()); headerres != Header::csvToHeader.end()) {
+					tmpSort.SortItem = headerres->second;
+				}
+				else return false;
+			}
+			else return false;
+
+			if (auto lowres = resp.value().find("isLowest"); lowres != resp.value().end()) {
+				if (!lowres.value().is_boolean()) return false;
+				sorting = std::move(tmpSort);
 			}
 		}
 
-		// Do the search
+		// GetPageNum
+		std::optional<int> page = {};
+		if (auto resp = request->find("PageNum"); resp != request->end()) {
+			if (!resp.value().is_number_integer()) return false;
+			page = resp.value();
+		}
 
-		return false;
+		// Do the search
+		return _Data->searchData(
+			retJson, error_ptr_ptr,
+			_variantName,
+			breakthroughFilters,
+			pgSimple,
+			pgComplex,
+			sorting,
+			page
+		);
 	}
 };

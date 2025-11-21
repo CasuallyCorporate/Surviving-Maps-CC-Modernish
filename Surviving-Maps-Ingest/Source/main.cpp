@@ -13,6 +13,8 @@
 #include "GameVariant.hpp"
 #include "ingestChangeFaq.hpp"
 
+#include "VariantData/RequestResponse.hpp"
+
 using json = nlohmann::json;
 
 /* Main
@@ -149,9 +151,8 @@ int main(/*int args, char* argv[]*/) {
 	}
 
 	const std::string MimeTypeJson = "application/json";
-	const std::string ErrorParseResponse = "{ \"Response\":\"Error: JSON parse\"}";
 
-	srv.Post("/motd", [&MimeTypeJson, &ErrorParseResponse](
+	srv.Post("/motd", [&MimeTypeJson](
 		const httplib::Request& req, httplib::Response& res){
 		json reqJson = json({});
 		try {
@@ -159,7 +160,7 @@ int main(/*int args, char* argv[]*/) {
 		}
 		catch (...) {
 			res.status = httplib::StatusCode::BadRequest_400;
-			res.set_content(ErrorParseResponse, MimeTypeJson);
+			res.set_content(RequestResponse::ErrorJsonParseResponse, MimeTypeJson);
 			return;
 		}
 
@@ -173,16 +174,16 @@ int main(/*int args, char* argv[]*/) {
 		}
 		else {
 			res.status = httplib::StatusCode::BadRequest_400;
-			res.set_content(ErrorParseResponse, MimeTypeJson);
+			res.set_content(RequestResponse::ErrorJsonParseResponse, MimeTypeJson);
 			return;
 		}
 
 		res.status = httplib::StatusCode::InternalServerError_500;
-		res.set_content(ErrorParseResponse, MimeTypeJson);
+		res.set_content(RequestResponse::ErrorJsonParseResponse, MimeTypeJson);
 		return;
 	});
 
-	srv.Post("/site", [&MimeTypeJson, &ErrorParseResponse](
+	srv.Post("/site", [&MimeTypeJson](
 		const httplib::Request& req, httplib::Response& res) {
 		json reqJson = json({});
 		try {
@@ -190,7 +191,7 @@ int main(/*int args, char* argv[]*/) {
 		}
 		catch (...) {
 			res.status = httplib::StatusCode::BadRequest_400;
-			res.set_content(ErrorParseResponse, MimeTypeJson);
+			res.set_content(RequestResponse::ErrorJsonParseResponse, MimeTypeJson);
 			return;
 		}
 
@@ -209,22 +210,22 @@ int main(/*int args, char* argv[]*/) {
 			}
 			else {
 				res.status = httplib::StatusCode::BadRequest_400;
-				res.set_content(ErrorParseResponse, MimeTypeJson);
+				res.set_content(RequestResponse::ErrorJsonParseResponse, MimeTypeJson);
 				return;
 			}
 		}
 		else {
 			res.status = httplib::StatusCode::BadRequest_400;
-			res.set_content(ErrorParseResponse, MimeTypeJson);
+			res.set_content(RequestResponse::ErrorJsonParseResponse, MimeTypeJson);
 			return;
 		}
 
 		res.status = httplib::StatusCode::InternalServerError_500;
-		res.set_content(ErrorParseResponse, MimeTypeJson);
+		res.set_content(RequestResponse::ErrorJsonParseResponse, MimeTypeJson);
 		return;
 	});
 
-	srv.Post("/page", [&MimeTypeJson, &ErrorParseResponse](
+	srv.Post("/page", [&MimeTypeJson](
 		const httplib::Request& req, httplib::Response& res) {
 		json reqJson = json({});
 		try {
@@ -232,7 +233,7 @@ int main(/*int args, char* argv[]*/) {
 		}
 		catch (...) {
 			res.status = httplib::StatusCode::BadRequest_400;
-			res.set_content(ErrorParseResponse, MimeTypeJson);
+			res.set_content(RequestResponse::ErrorJsonParseResponse, MimeTypeJson);
 			return;
 		}
 
@@ -242,31 +243,37 @@ int main(/*int args, char* argv[]*/) {
 			if (sysResp != _variantMap.end()) {
 				// Get site info from variant
 				json pageJson;
-				if (sysResp->second->getPageAsJson(&reqJson, &pageJson)) {
+				std::string* error_ptr = nullptr;
+				if (sysResp->second->getPageAsJson(&reqJson, &pageJson, &error_ptr)) {
 					res.status = httplib::StatusCode::OK_200;
 					res.set_content(pageJson.dump(), MimeTypeJson);
 					return;
 				}
-				/* Fall through 500 */
+				if (error_ptr) {
+					res.status = httplib::StatusCode::InternalServerError_500;
+					res.set_content(*error_ptr, MimeTypeJson);
+					return;
+				}
+				/* Fall through generic 500 */
 			}
 			else {
 				res.status = httplib::StatusCode::BadRequest_400;
-				res.set_content(ErrorParseResponse, MimeTypeJson);
+				res.set_content(RequestResponse::ErrorJsonParseResponse, MimeTypeJson);
 				return;
 			}
 		}
 		else {
 			res.status = httplib::StatusCode::BadRequest_400;
-			res.set_content(ErrorParseResponse, MimeTypeJson);
+			res.set_content(RequestResponse::ErrorJsonParseResponse, MimeTypeJson);
 			return;
 		}
 
 		res.status = httplib::StatusCode::InternalServerError_500;
-		res.set_content(ErrorParseResponse, MimeTypeJson);
+		res.set_content(RequestResponse::ErrorJsonParseResponse, MimeTypeJson);
 		return;
 	});
 
-	srv.Post("/coord", [&MimeTypeJson, &ErrorParseResponse](
+	srv.Post("/coord", [&MimeTypeJson](
 		const httplib::Request& req, httplib::Response& res) {
 		json reqJson = json({});
 		try {
@@ -274,7 +281,7 @@ int main(/*int args, char* argv[]*/) {
 		}
 		catch (...) {
 			res.status = httplib::StatusCode::BadRequest_400;
-			res.set_content(ErrorParseResponse, MimeTypeJson);
+			res.set_content(RequestResponse::ErrorJsonParseResponse, MimeTypeJson);
 			return;
 		}
 	});
