@@ -251,6 +251,8 @@ namespace Sites {
 	static bool setMapLocation(std::string location, Site* site) {
 		if (site->data.MapLocation == "")
 		{
+			std::replace(location.begin(), location.end(), ' ', '_'); // change space to _
+			std::transform(location.begin(), location.end(), location.begin(), ::toupper);
 			site->data.MapLocation = location;
 			return true;
 		}
@@ -264,6 +266,8 @@ namespace Sites {
 	}
 	static bool setMapTopography(std::string topography, Site* site) {
 		if (site->data.MapTopography == "") {
+			std::replace(topography.begin(), topography.end(), ' ', '_'); // change space to _
+			std::transform(topography.begin(), topography.end(), topography.begin(), ::toupper);
 			site->data.MapTopography = topography;
 			return true;
 		}

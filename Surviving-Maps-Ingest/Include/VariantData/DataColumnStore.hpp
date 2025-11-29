@@ -12,6 +12,64 @@
 
 using json = nlohmann::json;
 
+class IndexMover {
+private:
+	std::vector<uint16_t>* _vecTot;
+	std::vector<uint16_t> _inner;
+	uint16_t _maxIndex;
+	std::vector<uint16_t>::iterator _it;
+	uint16_t _nonIt = 0;
+	bool _hasMoved = false, _isIncremental = false;
+public:
+	IndexMover(std::vector<uint16_t>* vecTot, uint16_t maxIndex) {
+		_vecTot = vecTot;
+		_maxIndex = maxIndex;
+		_it = _vecTot->begin();
+		_isIncremental = (_it == _vecTot->end());
+	}
+
+	void move(uint16_t value) {
+		_inner.emplace_back(value);
+		_hasMoved = true;
+	}
+
+	bool nextValue(uint16_t* retValue) {
+		if (_isIncremental) {
+			// Go through until max
+			if (_nonIt < _maxIndex) {
+				*retValue = _nonIt;
+				_nonIt++;
+				return true;
+			}
+			return false;
+		}
+		else {
+			if (_it != _vecTot->end()) {
+				*retValue = *_it;
+				_it++;
+				return true;
+			}
+			return false;
+		}
+	}
+
+	bool checkMovedReconcileReset() {
+
+		*_vecTot = _inner;
+
+		// Reset and return
+		if (_hasMoved) {
+			_it = _vecTot->begin();
+			_isIncremental = (_it == _vecTot->end());
+			_inner.clear();
+			_nonIt = 0;
+
+			return true;
+		}
+		return false;
+	}
+};
+
 class DataColumnStore {
 private:
 	// utility
@@ -62,6 +120,9 @@ private:
 
 	// Breaktthoughs
 	Breakthroughs::btrData* _Breakthoughs;
+
+	// default "every index" vector
+	std::vector<uint16_t> _everyIndex;
 
 	template <class t>
 	bool ValuesToDictVals(std::set<t>* dict, std::vector<t>* inLocation, uint8_t* outLocation) {
@@ -174,6 +235,12 @@ public:
 			_NamedLocationDictIndices = new uint8_t[_maxEntries];
 
 			_Breakthoughs = new Breakthroughs::btrData[_maxEntries];
+
+			_everyIndex.reserve(_maxEntries);
+			for (uint16_t i = 0; i < _maxEntries; i++)
+			{
+				_everyIndex.emplace_back(i);
+			}
 		}
 		catch (...) {
 			_error_obj->setErrorMessage("Unable to allocate. May be out of memory");
@@ -334,13 +401,17 @@ public:
 		std::optional<int> page
 		) {
 		std::vector<uint16_t> valueIndexes;
+		uint16_t siteID = 0;
 		// Search from most diverse data source to least
+
+		// mover helper
+		IndexMover mover = IndexMover(&valueIndexes, _maxEntries);
 
 		// Breakthroughs
 		if (breakthroughFilters) {
 			Breakthroughs::btrData* sitebtrs = nullptr;
 			bool bitsset = true;
-			for (size_t i = 0; i < _maxEntries; i++)
+			for (uint16_t i = 0; i < _maxEntries; i++)
 			{
 				sitebtrs = &_Breakthoughs[i];
 				for (auto btr : breakthroughFilters.value()) {
@@ -351,7 +422,7 @@ public:
 				}
 				if (bitsset) {
 					// add to pile
-					valueIndexes.emplace_back(i);
+					mover.move(i);
 				}
 				else {
 					// reset
@@ -359,7 +430,7 @@ public:
 					// implicit continue
 				}
 			}
-			if (valueIndexes.size() == 0) {
+			if (!mover.checkMovedReconcileReset()) {
 				*error_ptr_ptr = &RequestResponse::ErrorNoResults;
 				return false;
 			}
@@ -368,147 +439,420 @@ public:
 		// simple resources
 		if (pgSimple.Resources || pgSimple.Disasters) {
 			if (pgSimple.Resources) {
-				std::vector<uint16_t> inner;
 				uint8_t total = 0;
 
-				if (valueIndexes.size() > 0) {
-					for (auto siteid : valueIndexes) {
-						total = 0;
-						total += _Metals[siteid];
-						total += _RareMetals[siteid];
-						total += _Concrete[siteid];
-						total += _Water[siteid];
+				while (mover.nextValue(&siteID)) {
+					total = 0;
+					total += _Metals[siteID];
+					total += _RareMetals[siteID];
+					total += _Concrete[siteID];
+					total += _Water[siteID];
 
-						switch (pgSimple.Resources.value().comparitor)
-						{
-						case RequestData::LessEqual:
-							if (total <= pgSimple.Resources.value().value) {
-								inner.emplace_back(siteid);
-							}
-							break;
-						case RequestData::Equal:
-							if (total == pgSimple.Resources.value().value) {
-								inner.emplace_back(siteid);
-							}
-							break;
-						case RequestData::MoreEqual:
-							if (total >= pgSimple.Resources.value().value) {
-								inner.emplace_back(siteid);
-							}
-							break;
-						}
-					}
-				}
-				else {
-					for (size_t i = 0; i < _maxEntries; i++)
+					switch (pgSimple.Resources.value().comparitor)
 					{
-						total = 0;
-						total += _Metals[i];
-						total += _RareMetals[i];
-						total += _Concrete[i];
-						total += _Water[i];
-
-						switch (pgSimple.Resources.value().comparitor)
-						{
-						case RequestData::LessEqual:
-							if (total <= pgSimple.Resources.value().value) {
-								inner.emplace_back(i);
-							}
-							break;
-						case RequestData::Equal:
-							if (total == pgSimple.Resources.value().value) {
-								inner.emplace_back(i);
-							}
-							break;
-						case RequestData::MoreEqual:
-							if (total >= pgSimple.Resources.value().value) {
-								inner.emplace_back(i);
-							}
-							break;
+					case RequestData::LessEqual:
+						if (total <= pgSimple.Resources.value().value) {
+							mover.move(siteID);
 						}
+						break;
+					case RequestData::Equal:
+						if (total == pgSimple.Resources.value().value) {
+							mover.move(siteID);
+						}
+						break;
+					case RequestData::MoreEqual:
+						if (total >= pgSimple.Resources.value().value) {
+							mover.move(siteID);
+						}
+						break;
 					}
 				}
-				if (inner.size() == 0) {
+
+				if (!mover.checkMovedReconcileReset()) {
 					*error_ptr_ptr = &RequestResponse::ErrorNoResults;
 					return false;
-				}
-				else {
-					valueIndexes = inner;
 				}
 			}
 			if (pgSimple.Disasters) {
-				std::vector<uint16_t> inner;
 				uint8_t total = 0;
+				
 
-				if (valueIndexes.size() > 0) {
-					for (auto siteid : valueIndexes) {
-						total = 0;
-						total += _DustStorms[siteid];
-						total += _DustDevils[siteid];
-						total += _Meteors[siteid];
-						total += _ColdWaves[siteid];
+				while (mover.nextValue(&siteID)) {
+					total = 0;
+					total += _DustStorms[siteID];
+					total += _DustDevils[siteID];
+					total += _Meteors[siteID];
+					total += _ColdWaves[siteID];
 
-						switch (pgSimple.Disasters.value().comparitor)
-						{
-						case RequestData::LessEqual:
-							if (total <= pgSimple.Disasters.value().value) {
-								inner.emplace_back(siteid);
-							}
-							break;
-						case RequestData::Equal:
-							if (total == pgSimple.Disasters.value().value) {
-								inner.emplace_back(siteid);
-							}
-							break;
-						case RequestData::MoreEqual:
-							if (total >= pgSimple.Disasters.value().value) {
-								inner.emplace_back(siteid);
-							}
-							break;
-						}
-					}
-				}
-				else {
-					for (size_t i = 0; i < _maxEntries; i++)
+					switch (pgSimple.Disasters.value().comparitor)
 					{
-						total = 0;
-						total += _DustStorms[i];
-						total += _DustDevils[i];
-						total += _Meteors[i];
-						total += _ColdWaves[i];
-
-						switch (pgSimple.Disasters.value().comparitor)
-						{
-						case RequestData::LessEqual:
-							if (total <= pgSimple.Disasters.value().value) {
-								inner.emplace_back(i);
-							}
-							break;
-						case RequestData::Equal:
-							if (total == pgSimple.Disasters.value().value) {
-								inner.emplace_back(i);
-							}
-							break;
-						case RequestData::MoreEqual:
-							if (total >= pgSimple.Disasters.value().value) {
-								inner.emplace_back(i);
-							}
-							break;
+					case RequestData::LessEqual:
+						if (total <= pgSimple.Disasters.value().value) {
+							mover.move(siteID);
 						}
+						break;
+					case RequestData::Equal:
+						if (total == pgSimple.Disasters.value().value) {
+							mover.move(siteID);
+						}
+						break;
+					case RequestData::MoreEqual:
+						if (total >= pgSimple.Disasters.value().value) {
+							mover.move(siteID);
+						}
+						break;
 					}
 				}
-				if (inner.size() == 0) {
+
+				if (!mover.checkMovedReconcileReset()) {
 					*error_ptr_ptr = &RequestResponse::ErrorNoResults;
 					return false;
-				}
-				else {
-					valueIndexes = inner;
 				}
 			}
 		}
 		else if (pgComplex){
+			if (pgComplex.value().Resources) {
+				RequestData::ComplexResources* compRes = &pgComplex.value().Resources.value();
 
+				if (compRes->Metal) {
+					while (mover.nextValue(&siteID)) {
+						switch (compRes->Metal.value().comparitor)
+						{
+						case RequestData::LessEqual:
+							if (_Metals[siteID] <= compRes->Metal.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						case RequestData::Equal:
+							if (_Metals[siteID] == compRes->Metal.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						case RequestData::MoreEqual:
+							if (_Metals[siteID] >= compRes->Metal.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						}
+					}
+
+					if (!mover.checkMovedReconcileReset()) {
+						*error_ptr_ptr = &RequestResponse::ErrorNoResults;
+						return false;
+					}
+				}
+				if (compRes->RareMetal) {
+					while (mover.nextValue(&siteID)) {
+						switch (compRes->RareMetal.value().comparitor)
+						{
+						case RequestData::LessEqual:
+							if (_RareMetals[siteID] <= compRes->RareMetal.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						case RequestData::Equal:
+							if (_RareMetals[siteID] == compRes->RareMetal.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						case RequestData::MoreEqual:
+							if (_RareMetals[siteID] >= compRes->RareMetal.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						}
+					}
+
+					if (!mover.checkMovedReconcileReset()) {
+						*error_ptr_ptr = &RequestResponse::ErrorNoResults;
+						return false;
+					}
+				}
+				if (compRes->Concrete) {
+					while (mover.nextValue(&siteID)) {
+						switch (compRes->Concrete.value().comparitor)
+						{
+						case RequestData::LessEqual:
+							if (_Concrete[siteID] <= compRes->Concrete.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						case RequestData::Equal:
+							if (_Concrete[siteID] == compRes->Concrete.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						case RequestData::MoreEqual:
+							if (_Concrete[siteID] >= compRes->Concrete.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						}
+					}
+
+					if (!mover.checkMovedReconcileReset()) {
+						*error_ptr_ptr = &RequestResponse::ErrorNoResults;
+						return false;
+					}
+				}
+				if (compRes->Water) {
+					while (mover.nextValue(&siteID)) {
+						switch (compRes->Water.value().comparitor)
+						{
+						case RequestData::LessEqual:
+							if (_Water[siteID] <= compRes->Water.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						case RequestData::Equal:
+							if (_Water[siteID] == compRes->Water.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						case RequestData::MoreEqual:
+							if (_Water[siteID] >= compRes->Water.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						}
+					}
+
+					if (!mover.checkMovedReconcileReset()) {
+						*error_ptr_ptr = &RequestResponse::ErrorNoResults;
+						return false;
+					}
+				}
+			}
+			if (pgComplex.value().Disasters) {
+				RequestData::ComplexDisasters* compDis = &pgComplex.value().Disasters.value();
+
+				if (compDis->DustDevils) {
+					while (mover.nextValue(&siteID)) {
+						switch (compDis->DustDevils.value().comparitor)
+						{
+						case RequestData::LessEqual:
+							if (_Water[siteID] <= compDis->DustDevils.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						case RequestData::Equal:
+							if (_Water[siteID] == compDis->DustDevils.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						case RequestData::MoreEqual:
+							if (_Water[siteID] >= compDis->DustDevils.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						}
+					}
+
+					if (!mover.checkMovedReconcileReset()) {
+						*error_ptr_ptr = &RequestResponse::ErrorNoResults;
+						return false;
+					}
+				}
+				if (compDis->DustStorms) {
+					while (mover.nextValue(&siteID)) {
+						switch (compDis->DustStorms.value().comparitor)
+						{
+						case RequestData::LessEqual:
+							if (_Water[siteID] <= compDis->DustStorms.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						case RequestData::Equal:
+							if (_Water[siteID] == compDis->DustStorms.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						case RequestData::MoreEqual:
+							if (_Water[siteID] >= compDis->DustStorms.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						}
+					}
+
+					if (!mover.checkMovedReconcileReset()) {
+						*error_ptr_ptr = &RequestResponse::ErrorNoResults;
+						return false;
+					}
+				}
+				if (compDis->Meteors) {
+					while (mover.nextValue(&siteID)) {
+						switch (compDis->Meteors.value().comparitor)
+						{
+						case RequestData::LessEqual:
+							if (_Water[siteID] <= compDis->Meteors.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						case RequestData::Equal:
+							if (_Water[siteID] == compDis->Meteors.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						case RequestData::MoreEqual:
+							if (_Water[siteID] >= compDis->Meteors.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						}
+					}
+
+					if (!mover.checkMovedReconcileReset()) {
+						*error_ptr_ptr = &RequestResponse::ErrorNoResults;
+						return false;
+					}
+				}
+				if (compDis->ColdWaves) {
+					while (mover.nextValue(&siteID)) {
+						switch (compDis->ColdWaves.value().comparitor)
+						{
+						case RequestData::LessEqual:
+							if (_Water[siteID] <= compDis->ColdWaves.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						case RequestData::Equal:
+							if (_Water[siteID] == compDis->ColdWaves.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						case RequestData::MoreEqual:
+							if (_Water[siteID] >= compDis->ColdWaves.value().value) {
+								mover.move(siteID);
+							}
+							break;
+						}
+					}
+
+					if (!mover.checkMovedReconcileReset()) {
+						*error_ptr_ptr = &RequestResponse::ErrorNoResults;
+						return false;
+					}
+				}
+			}
+			if (pgComplex.value().MapChallenge) {
+				if (auto diffIt = DifficultyDictionary.find(pgComplex.value().MapChallenge.value().value); diffIt != DifficultyDictionary.end()) {
+					int reqValue = *diffIt;
+
+					while (mover.nextValue(&siteID)) {
+						switch (pgComplex.value().MapChallenge.value().comparitor)
+						{
+						case RequestData::LessEqual:
+							diffIt = DifficultyDictionary.begin();
+							std::advance(diffIt, _DifficultyDictIndices[siteID]);
+							if (*diffIt <= reqValue) {
+								mover.move(siteID);
+							}
+							break;
+						case RequestData::Equal:
+							diffIt = DifficultyDictionary.begin();
+							std::advance(diffIt, _DifficultyDictIndices[siteID]);
+							if (*diffIt == reqValue) {
+								mover.move(siteID);
+							}
+							break;
+						case RequestData::MoreEqual:
+							diffIt = DifficultyDictionary.begin();
+							std::advance(diffIt, _DifficultyDictIndices[siteID]);
+							if (*diffIt >= reqValue) {
+								mover.move(siteID);
+							}
+							break;
+						}
+					}
+				}
+				else {
+					*error_ptr_ptr = &RequestResponse::ErrorReqDataInvalid;
+					return false;
+				}
+
+				if (!mover.checkMovedReconcileReset()) {
+					*error_ptr_ptr = &RequestResponse::ErrorNoResults;
+					return false;
+				}
+			}
+			if (pgComplex.value().MapNames) {
+				std::set<uint8_t> validIndexes;
+				for (auto name : pgComplex.value().MapNames.value()) {
+					if (auto nameRes = MapNameDictionary.find(name); nameRes != MapNameDictionary.end()) {
+						validIndexes.emplace(std::distance(MapNameDictionary.begin(), nameRes));
+					}
+					else {
+						*error_ptr_ptr = &RequestResponse::ErrorReqDataInvalid;
+						return false;
+					}
+				}
+
+				while (mover.nextValue(&siteID)) {
+					if (validIndexes.contains(_MapNameDictIndices[siteID])) {
+						mover.move(siteID);
+					}
+				}
+
+				if (!mover.checkMovedReconcileReset()) {
+					*error_ptr_ptr = &RequestResponse::ErrorNoResults;
+					return false;
+				}
+			}
+			if (pgComplex.value().MapNamedAreas) {
+				std::set<uint8_t> validIndexes;
+				for (auto name : pgComplex.value().MapNamedAreas.value()) {
+					if (auto nameRes = NamedLocationDictionary.find(name); nameRes != NamedLocationDictionary.end()) {
+						validIndexes.emplace(std::distance(NamedLocationDictionary.begin(), nameRes));
+					}
+					else {
+						*error_ptr_ptr = &RequestResponse::ErrorReqDataInvalid;
+						return false;
+					}
+				}
+
+				while (mover.nextValue(&siteID)) {
+					if (validIndexes.contains(_NamedLocationDictIndices[siteID])) {
+						mover.move(siteID);
+					}
+				}
+
+				if (!mover.checkMovedReconcileReset()) {
+					*error_ptr_ptr = &RequestResponse::ErrorNoResults;
+					return false;
+				}
+			}
+			if (pgComplex.value().MapTopographies) {
+				std::set<uint8_t> validIndexes;
+				for (auto name : pgComplex.value().MapTopographies.value()) {
+					if (auto nameRes = TopographyDictionary.find(name); nameRes != TopographyDictionary.end()) {
+						validIndexes.emplace(std::distance(TopographyDictionary.begin(), nameRes));
+					}
+					else {
+						*error_ptr_ptr = &RequestResponse::ErrorReqDataInvalid;
+						return false;
+					}
+				}
+
+				while (mover.nextValue(&siteID)) {
+					if (validIndexes.contains(_TopographyDictIndices[siteID])) {
+						mover.move(siteID);
+					}
+				}
+
+				if (!mover.checkMovedReconcileReset()) {
+					*error_ptr_ptr = &RequestResponse::ErrorNoResults;
+					return false;
+				}
+			}
 		}
+
+		// check for no valueIndexes, presume variant only. Get everything
+		if (valueIndexes.size() == 0) {
+			valueIndexes = _everyIndex;
+		}
+
+		// Before sorting <----------- CACHING ------------>
 
 		// End with sorting
 		if (sorting) {

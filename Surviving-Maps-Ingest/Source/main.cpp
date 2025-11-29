@@ -35,6 +35,15 @@ json _changelog = json({});
 httplib::Server* _SrvPointer = nullptr;
 
 void stopSrvSignalHandler(int sig) {
+	if (SIGABRT == sig) {
+		std::cout << "\n!!!> SIGABRT <!!!" << std::endl;
+	}
+	if (SIGTERM == sig) {
+		std::cout << "\n!!!> SIGTERM <!!!" << std::endl;
+	}
+	if (SIGINT == sig) {
+		std::cout << "\n!!!> SIGINT <!!!" << std::endl;
+	}
 	if (_SrvPointer) {
 		_SrvPointer->stop();
 	}
@@ -293,7 +302,10 @@ int main(/*int args, char* argv[]*/) {
 	signal(SIGINT, stopSrvSignalHandler);
 
 	std::cout << "<!! Server Listening !!>\n";
-	srv.listen("0.0.0.0", 8000);
+	if (!srv.listen("0.0.0.0", 8080)) {
+		std::cout << "\n!!!> could not start server <!!!" << std::endl;
+		return -1;
+	}
 
 	return 0;
 }
