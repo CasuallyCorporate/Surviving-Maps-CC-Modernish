@@ -1,6 +1,6 @@
 #pragma once
 
-#include <array>
+#include <algorithm>
 #include <vector>
 #include <set>
 
@@ -11,64 +11,6 @@
 #include "RequestResponse.hpp"
 
 using json = nlohmann::json;
-
-class IndexMover {
-private:
-	std::vector<uint16_t>* _vecTot;
-	std::vector<uint16_t> _inner;
-	uint16_t _maxIndex;
-	std::vector<uint16_t>::iterator _it;
-	uint16_t _nonIt = 0;
-	bool _hasMoved = false, _isIncremental = false;
-public:
-	IndexMover(std::vector<uint16_t>* vecTot, uint16_t maxIndex) {
-		_vecTot = vecTot;
-		_maxIndex = maxIndex;
-		_it = _vecTot->begin();
-		_isIncremental = (_it == _vecTot->end());
-	}
-
-	void move(uint16_t value) {
-		_inner.emplace_back(value);
-		_hasMoved = true;
-	}
-
-	bool nextValue(uint16_t* retValue) {
-		if (_isIncremental) {
-			// Go through until max
-			if (_nonIt < _maxIndex) {
-				*retValue = _nonIt;
-				_nonIt++;
-				return true;
-			}
-			return false;
-		}
-		else {
-			if (_it != _vecTot->end()) {
-				*retValue = *_it;
-				_it++;
-				return true;
-			}
-			return false;
-		}
-	}
-
-	bool checkMovedReconcileReset() {
-
-		*_vecTot = _inner;
-
-		// Reset and return
-		if (_hasMoved) {
-			_it = _vecTot->begin();
-			_isIncremental = (_it == _vecTot->end());
-			_inner.clear();
-			_nonIt = 0;
-
-			return true;
-		}
-		return false;
-	}
-};
 
 class DataColumnStore {
 private:
@@ -107,12 +49,14 @@ private:
 	int* _Temperature;
 
 	// Basic Resources
+	uint8_t* _ResourcesTot;
 	uint8_t* _Metals;
 	uint8_t* _RareMetals;
 	uint8_t* _Concrete;
 	uint8_t* _Water;
 
 	// Basic Disasters
+	uint8_t* _DisastersTot;
 	uint8_t* _DustDevils;
 	uint8_t* _DustStorms;
 	uint8_t* _Meteors;
@@ -184,12 +128,14 @@ public:
 		delete _Temperature;
 
 		// Basic Resources
+		delete _ResourcesTot;
 		delete _Metals;
 		delete _RareMetals;
 		delete _Concrete;
 		delete _Water;
 
 		// Basic Disasters
+		delete _DisastersTot;
 		delete _DustDevils;
 		delete _DustStorms;
 		delete _Meteors;
@@ -218,11 +164,13 @@ public:
 			_Altitude = new int[_maxEntries];
 			_Temperature = new int[_maxEntries];
 
+			_ResourcesTot = new uint8_t[_maxEntries];
 			_Metals = new uint8_t[_maxEntries];
 			_RareMetals = new uint8_t[_maxEntries];
 			_Concrete = new uint8_t[_maxEntries];
 			_Water = new uint8_t[_maxEntries];
 
+			_DisastersTot = new uint8_t[_maxEntries];
 			_DustDevils = new uint8_t[_maxEntries];
 			_DustStorms = new uint8_t[_maxEntries];
 			_Meteors = new uint8_t[_maxEntries];;
@@ -288,11 +236,13 @@ public:
 		_RareMetals[_currIndex] = tmpSite->data.Resources[1];
 		_Concrete[_currIndex] = tmpSite->data.Resources[2];
 		_Water[_currIndex] = tmpSite->data.Resources[3];
+		_ResourcesTot[_currIndex] = tmpSite->data.Resources[0] + tmpSite->data.Resources[1] + tmpSite->data.Resources[2] + tmpSite->data.Resources[3];
 
 		_DustDevils[_currIndex] = tmpSite->data.Disasters[0];
 		_DustStorms[_currIndex] = tmpSite->data.Disasters[1];
 		_Meteors[_currIndex] = tmpSite->data.Disasters[2];
 		_ColdWaves[_currIndex] = tmpSite->data.Disasters[3];
+		_DisastersTot[_currIndex] = tmpSite->data.Disasters[0] + tmpSite->data.Disasters[1] + tmpSite->data.Disasters[2] + tmpSite->data.Disasters[3];
 
 		_Breakthoughs[_currIndex] = Breakthroughs::btrData{};
 		Breakthroughs::btrData::setBreakthroughSet(&_Breakthoughs[_currIndex], &tmpSite->_cachedBreakthroughs);
@@ -371,11 +321,13 @@ public:
 
 		tmpSite->Temperature = _Temperature[SiteIndex];
 
+		tmpSite->ResourcesTot = _ResourcesTot[SiteIndex];
 		tmpSite->Resources[0] = _Metals[SiteIndex];
 		tmpSite->Resources[1] = _RareMetals[SiteIndex];
 		tmpSite->Resources[2] = _Concrete[SiteIndex];
 		tmpSite->Resources[3] = _Water[SiteIndex];
 
+		tmpSite->DisastersTot = _DisastersTot[SiteIndex];
 		tmpSite->Disasters[0] = _DustDevils[SiteIndex];
 		tmpSite->Disasters[1] = _DustStorms[SiteIndex];
 		tmpSite->Disasters[2] = _Meteors[SiteIndex];
@@ -402,10 +354,11 @@ public:
 		) {
 		std::vector<uint16_t> valueIndexes;
 		uint16_t siteID = 0;
+		uint16_t siteValue = 0;
 		// Search from most diverse data source to least
 
 		// mover helper
-		IndexMover mover = IndexMover(&valueIndexes, _maxEntries);
+		RequestData::IndexCollation mover = RequestData::IndexCollation(&valueIndexes, _maxEntries);
 
 		// Breakthroughs
 		if (breakthroughFilters) {
@@ -439,29 +392,24 @@ public:
 		// simple resources
 		if (pgSimple.Resources || pgSimple.Disasters) {
 			if (pgSimple.Resources) {
-				uint8_t total = 0;
 
 				while (mover.nextValue(&siteID)) {
-					total = 0;
-					total += _Metals[siteID];
-					total += _RareMetals[siteID];
-					total += _Concrete[siteID];
-					total += _Water[siteID];
+					siteValue = _ResourcesTot[siteID];
 
 					switch (pgSimple.Resources.value().comparitor)
 					{
 					case RequestData::LessEqual:
-						if (total <= pgSimple.Resources.value().value) {
+						if (siteValue <= pgSimple.Resources.value().value) {
 							mover.move(siteID);
 						}
 						break;
 					case RequestData::Equal:
-						if (total == pgSimple.Resources.value().value) {
+						if (siteValue == pgSimple.Resources.value().value) {
 							mover.move(siteID);
 						}
 						break;
 					case RequestData::MoreEqual:
-						if (total >= pgSimple.Resources.value().value) {
+						if (siteValue >= pgSimple.Resources.value().value) {
 							mover.move(siteID);
 						}
 						break;
@@ -474,30 +422,24 @@ public:
 				}
 			}
 			if (pgSimple.Disasters) {
-				uint8_t total = 0;
-				
 
 				while (mover.nextValue(&siteID)) {
-					total = 0;
-					total += _DustStorms[siteID];
-					total += _DustDevils[siteID];
-					total += _Meteors[siteID];
-					total += _ColdWaves[siteID];
+					siteValue = _DisastersTot[siteID];
 
 					switch (pgSimple.Disasters.value().comparitor)
 					{
 					case RequestData::LessEqual:
-						if (total <= pgSimple.Disasters.value().value) {
+						if (siteValue <= pgSimple.Disasters.value().value) {
 							mover.move(siteID);
 						}
 						break;
 					case RequestData::Equal:
-						if (total == pgSimple.Disasters.value().value) {
+						if (siteValue == pgSimple.Disasters.value().value) {
 							mover.move(siteID);
 						}
 						break;
 					case RequestData::MoreEqual:
-						if (total >= pgSimple.Disasters.value().value) {
+						if (siteValue >= pgSimple.Disasters.value().value) {
 							mover.move(siteID);
 						}
 						break;
@@ -846,17 +788,124 @@ public:
 				}
 			}
 		}
-
+		
 		// check for no valueIndexes, presume variant only. Get everything
 		if (valueIndexes.size() == 0) {
 			valueIndexes = _everyIndex;
 		}
+		else {
+			// Before sorting <----------- CACHING ------------>
 
-		// Before sorting <----------- CACHING ------------>
+		}
 
 		// End with sorting
 		if (sorting) {
+			if (sorting.value().SortCategory) {
+				if (sorting.value().isLowest) {
+					switch (sorting.value().SortCategory.value())
+					{
+					case RequestData::SortingCategory::Location_Coord:
+						// lowest = EW
+						// highest = NS
+						break;
+					case RequestData::SortingCategory::DisastersTotal:
+						std::sort(valueIndexes.begin(), valueIndexes.end(), [this](const uint16_t& a, const uint16_t& b) { return (this->_DisastersTot[a] < this->_DisastersTot[b]); });
+						break;
+					case RequestData::SortingCategory::ResourcesTotal:
+						std::sort(valueIndexes.begin(), valueIndexes.end(), [this](const uint16_t& a, const uint16_t& b) { return (this->_ResourcesTot[a] < this->_ResourcesTot[b]); });
+						break;
+					}
+				}
+				else {
+					switch (sorting.value().SortCategory.value())
+					{
+					case RequestData::SortingCategory::Location_Coord:
+						// lowest = EW
+						// highest = NS
+						break;
+					case RequestData::SortingCategory::DisastersTotal:
+						std::sort(valueIndexes.begin(), valueIndexes.end(), [this](const uint16_t& a, const uint16_t& b) { return (this->_DisastersTot[a] > this->_DisastersTot[b]); });
+						break;
+					case RequestData::SortingCategory::ResourcesTotal:
+						std::sort(valueIndexes.begin(), valueIndexes.end(), [this](const uint16_t& a, const uint16_t& b) { return (this->_ResourcesTot[a] > this->_ResourcesTot[b]); });
+						break;
+					}
+				}
 
+			}
+			else if (sorting.value().SortItem) {
+				Header::Headers tmpItem = sorting.value().SortItem.value();
+				// check correctness
+				if (tmpItem >= Header::Headers::Metals && tmpItem <= Header::Headers::ColdWaves) {
+					if (sorting.value().isLowest) {
+						switch (tmpItem)
+						{
+						case Header::Metals:
+							std::sort(valueIndexes.begin(), valueIndexes.end(), [this](const uint16_t& a, const uint16_t& b) { return (this->_Metals[a] < this->_Metals[b]); });
+							break;
+						case Header::RareMetals:
+							std::sort(valueIndexes.begin(), valueIndexes.end(), [this](const uint16_t& a, const uint16_t& b) { return (this->_RareMetals[a] < this->_RareMetals[b]); });
+							break;
+						case Header::Concrete:
+							std::sort(valueIndexes.begin(), valueIndexes.end(), [this](const uint16_t& a, const uint16_t& b) { return (this->_Concrete[a] < this->_Concrete[b]); });
+							break;
+						case Header::Water:
+							std::sort(valueIndexes.begin(), valueIndexes.end(), [this](const uint16_t& a, const uint16_t& b) { return (this->_Water[a] < this->_Water[b]); });
+							break;
+						case Header::DustDevils:
+							std::sort(valueIndexes.begin(), valueIndexes.end(), [this](const uint16_t& a, const uint16_t& b) { return (this->_DustDevils[a] < this->_DustDevils[b]); });
+							break;
+						case Header::DustStorms:
+							std::sort(valueIndexes.begin(), valueIndexes.end(), [this](const uint16_t& a, const uint16_t& b) { return (this->_DustStorms[a] < this->_DustStorms[b]); });
+							break;
+						case Header::Meteors:
+							std::sort(valueIndexes.begin(), valueIndexes.end(), [this](const uint16_t& a, const uint16_t& b) { return (this->_Meteors[a] < this->_Meteors[b]); });
+							break;
+						case Header::ColdWaves:
+							std::sort(valueIndexes.begin(), valueIndexes.end(), [this](const uint16_t& a, const uint16_t& b) { return (this->_ColdWaves[a] < this->_ColdWaves[b]); });
+							break;
+						}
+					}
+					else {
+						switch (tmpItem)
+						{
+						case Header::Metals:
+							std::sort(valueIndexes.begin(), valueIndexes.end(), [this](const uint16_t& a, const uint16_t& b) { return (this->_Metals[a] > this->_Metals[b]); });
+							break;
+						case Header::RareMetals:
+							std::sort(valueIndexes.begin(), valueIndexes.end(), [this](const uint16_t& a, const uint16_t& b) { return (this->_RareMetals[a] > this->_RareMetals[b]); });
+							break;
+						case Header::Concrete:
+							std::sort(valueIndexes.begin(), valueIndexes.end(), [this](const uint16_t& a, const uint16_t& b) { return (this->_Concrete[a] > this->_Concrete[b]); });
+							break;
+						case Header::Water:
+							std::sort(valueIndexes.begin(), valueIndexes.end(), [this](const uint16_t& a, const uint16_t& b) { return (this->_Water[a] > this->_Water[b]); });
+							break;
+						case Header::DustDevils:
+							std::sort(valueIndexes.begin(), valueIndexes.end(), [this](const uint16_t& a, const uint16_t& b) { return (this->_DustDevils[a] > this->_DustDevils[b]); });
+							break;
+						case Header::DustStorms:
+							std::sort(valueIndexes.begin(), valueIndexes.end(), [this](const uint16_t& a, const uint16_t& b) { return (this->_DustStorms[a] > this->_DustStorms[b]); });
+							break;
+						case Header::Meteors:
+							std::sort(valueIndexes.begin(), valueIndexes.end(), [this](const uint16_t& a, const uint16_t& b) { return (this->_Meteors[a] > this->_Meteors[b]); });
+							break;
+						case Header::ColdWaves:
+							std::sort(valueIndexes.begin(), valueIndexes.end(), [this](const uint16_t& a, const uint16_t& b) { return (this->_ColdWaves[a] > this->_ColdWaves[b]); });
+							break;
+						}
+					}
+
+				}
+				else {
+					*error_ptr_ptr = &RequestResponse::ErrorReqDataInvalid;
+					return false;
+				}
+			}
+			else {
+				*error_ptr_ptr = &RequestResponse::ErrorReqDataInvalid;
+				return false;
+			}
 		}
 
 		// Split the results into 20 item pages
@@ -887,7 +936,7 @@ public:
 				}
 			}
 			else {
-				*error_ptr_ptr = &RequestResponse::ErrorProcessing;
+				*error_ptr_ptr = &RequestResponse::ErrorReqDataInvalid;
 				return false;
 			}
 		}
@@ -921,12 +970,12 @@ public:
 				coordinate += std::to_string(tmpSite.Longitude);
 				coordinate += tmpSite.LongEW;
 				tmpSiteObject["Coordinates"] = coordinate;
-				tmpSiteObject["DisastersTot"] = tmpSite.Disasters[0] + tmpSite.Disasters[1] + tmpSite.Disasters[2] + tmpSite.Disasters[3]; // DustDevils, DustStorms, Meteors, ColdWaves
+				tmpSiteObject["DisastersTot"] = tmpSite.DisastersTot;
 				tmpSiteObject["DustDevils"] = tmpSite.Disasters[0];
 				tmpSiteObject["DustStorms"] = tmpSite.Disasters[1];
 				tmpSiteObject["Meteors"] = tmpSite.Disasters[2];
 				tmpSiteObject["ColdWaves"] = tmpSite.Disasters[3];
-				tmpSiteObject["ResourcesTot"] = tmpSite.Resources[0] + tmpSite.Resources[1] + tmpSite.Resources[2] + tmpSite.Resources[3]; // Metals, RareMetals, Concrete, Water
+				tmpSiteObject["ResourcesTot"] = tmpSite.ResourcesTot;
 				tmpSiteObject["Metal"] = tmpSite.Resources[0];
 				tmpSiteObject["RareMetal"] = tmpSite.Resources[1];
 				tmpSiteObject["Concrete"] = tmpSite.Resources[2];

@@ -291,10 +291,10 @@ public:
 					tmpSort.SortCategory = RequestData::SortingCategory::Location_Coord;
 				}
 				else if (itemres.value() == "Resources") {
-					tmpSort.SortCategory = RequestData::SortingCategory::Resources;
+					tmpSort.SortCategory = RequestData::SortingCategory::ResourcesTotal;
 				}
 				else if (itemres.value() == "Disasters") {
-					tmpSort.SortCategory = RequestData::SortingCategory::Disasters;
+					tmpSort.SortCategory = RequestData::SortingCategory::DisastersTotal;
 				}
 				else if (auto headerres = Header::csvToHeader.find(itemres.value()); headerres != Header::csvToHeader.end()) {
 					tmpSort.SortItem = headerres->second;
@@ -305,6 +305,7 @@ public:
 
 			if (auto lowres = resp.value().find("isLowest"); lowres != resp.value().end()) {
 				if (!lowres.value().is_boolean()) return false;
+				tmpSort.isLowest = lowres.value();
 				sorting = std::move(tmpSort);
 			}
 		}

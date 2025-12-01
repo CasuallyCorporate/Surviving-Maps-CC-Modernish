@@ -35,7 +35,9 @@ namespace Header {
 	static const std::map<std::string, Headers> csvToHeader{
 		{"Latitude °", Headers::LatitudeDeg}, {"Latitude", Headers::LatitudeNS}, {"Longitude °", Headers::LongitudeDeg}, {"Longitude", Headers::LongitudeEW},
 
-		{"Metals", Headers::Metals}, {"Rare Metals", Headers::RareMetals}, {"Concrete", Headers::Concrete}, {"Water", Headers::Water},
+		{"Metals", Headers::Metals}, {"Metal", Headers::Metals},
+		{"Rare Metals", Headers::RareMetals}, {"Rare Metal", Headers::RareMetals},
+		{"Concrete", Headers::Concrete}, {"Water", Headers::Water},
 
 		{"Dust Devils", Headers::DustDevils}, {"Dust Storms", Headers::DustStorms}, {"Meteors", Headers::Meteors}, {"Cold Waves", Headers::ColdWaves},
 

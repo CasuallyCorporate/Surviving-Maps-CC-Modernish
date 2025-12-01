@@ -18,7 +18,9 @@ namespace Sites {
 		char LongEW;
 		int Longitude;
 
+		uint8_t ResourcesTot;
 		std::array<uint8_t, 4> Resources;
+		uint8_t DisastersTot;
 		std::array<uint8_t, 4> Disasters;
 
 		std::string MapName;
@@ -41,8 +43,9 @@ namespace Sites {
 			_defaultchar, -1,
 			
 			_defaultchar, -1,
-
+			UINT8_MAX,
 			{UINT8_MAX,UINT8_MAX,UINT8_MAX,UINT8_MAX},
+			UINT8_MAX,
 			{UINT8_MAX,UINT8_MAX,UINT8_MAX,UINT8_MAX},
 
 			"",

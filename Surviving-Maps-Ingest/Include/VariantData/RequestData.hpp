@@ -7,8 +7,8 @@
 namespace RequestData {
 	enum SortingCategory {
 		Location_Coord,
-		Disasters,
-		Resources
+		DisastersTotal,
+		ResourcesTotal
 	};
 
 	enum Comparitor {
@@ -67,5 +67,63 @@ namespace RequestData {
 		std::optional<std::vector<std::string>> MapNames;
 		std::optional<std::vector<std::string>> MapNamedAreas;
 		std::optional<std::vector<std::string>> MapTopographies;
+	};
+
+	class IndexCollation {
+	private:
+		std::vector<uint16_t>* _vecTot;
+		std::vector<uint16_t> _inner;
+		uint16_t _maxIndex;
+		std::vector<uint16_t>::iterator _it;
+		uint16_t _nonIt = 0;
+		bool _hasMoved = false, _isIncremental = false;
+	public:
+		IndexCollation(std::vector<uint16_t>* vecTot, uint16_t maxIndex) {
+			_vecTot = vecTot;
+			_maxIndex = maxIndex;
+			_it = _vecTot->begin();
+			_isIncremental = (_it == _vecTot->end());
+		}
+
+		void move(uint16_t value) {
+			_inner.emplace_back(value);
+			_hasMoved = true;
+		}
+
+		bool nextValue(uint16_t* retValue) {
+			if (_isIncremental) {
+				// Go through until max
+				if (_nonIt < _maxIndex) {
+					*retValue = _nonIt;
+					_nonIt++;
+					return true;
+				}
+				return false;
+			}
+			else {
+				if (_it != _vecTot->end()) {
+					*retValue = *_it;
+					_it++;
+					return true;
+				}
+				return false;
+			}
+		}
+
+		bool checkMovedReconcileReset() {
+
+			*_vecTot = _inner;
+
+			// Reset and return
+			if (_hasMoved) {
+				_it = _vecTot->begin();
+				_isIncremental = (_it == _vecTot->end());
+				_inner.clear();
+				_nonIt = 0;
+
+				return true;
+			}
+			return false;
+		}
 	};
 }
