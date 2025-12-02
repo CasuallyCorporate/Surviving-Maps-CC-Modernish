@@ -747,6 +747,15 @@ public:
 					if (auto nameRes = NamedLocationDictionary.find(name); nameRes != NamedLocationDictionary.end()) {
 						validIndexes.emplace(std::distance(NamedLocationDictionary.begin(), nameRes));
 					}
+					else if (name == "UNNAMED") {
+						if (auto nameRes = NamedLocationDictionary.find(""); nameRes != NamedLocationDictionary.end()) {
+							validIndexes.emplace(std::distance(NamedLocationDictionary.begin(), nameRes));
+						}
+						else {
+							*error_ptr_ptr = &RequestResponse::ErrorProcessing;
+							return false;
+						}
+					}
 					else {
 						*error_ptr_ptr = &RequestResponse::ErrorReqDataInvalid;
 						return false;
@@ -789,9 +798,15 @@ public:
 			}
 		}
 		
-		// check for no valueIndexes, presume variant only. Get everything
+		// if no narrowing down, presume variant only. Get everything
 		if (valueIndexes.size() == 0) {
-			valueIndexes = _everyIndex;
+			if (mover.checkEverMoved()) {
+				*error_ptr_ptr = &RequestResponse::ErrorNoResults;
+				return false;
+			}
+			else {
+				valueIndexes = _everyIndex;
+			}
 		}
 		else {
 			// Before sorting <----------- CACHING ------------>

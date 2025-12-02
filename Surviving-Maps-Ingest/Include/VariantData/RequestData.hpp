@@ -76,7 +76,7 @@ namespace RequestData {
 		uint16_t _maxIndex;
 		std::vector<uint16_t>::iterator _it;
 		uint16_t _nonIt = 0;
-		bool _hasMoved = false, _isIncremental = false;
+		bool _hasMoved = false, _isIncremental = false, _MovedAtAll = false;
 	public:
 		IndexCollation(std::vector<uint16_t>* vecTot, uint16_t maxIndex) {
 			_vecTot = vecTot;
@@ -121,9 +121,15 @@ namespace RequestData {
 				_inner.clear();
 				_nonIt = 0;
 
+				_MovedAtAll = true;
+
 				return true;
 			}
 			return false;
+		}
+
+		bool checkEverMoved() {
+			return _MovedAtAll;
 		}
 	};
 }
