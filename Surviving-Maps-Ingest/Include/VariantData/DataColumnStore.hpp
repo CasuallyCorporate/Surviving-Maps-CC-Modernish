@@ -573,17 +573,17 @@ public:
 						switch (compDis->DustDevils.value().comparitor)
 						{
 						case RequestData::LessEqual:
-							if (_Water[siteID] <= compDis->DustDevils.value().value) {
+							if (_DustDevils[siteID] <= compDis->DustDevils.value().value) {
 								mover.move(siteID);
 							}
 							break;
 						case RequestData::Equal:
-							if (_Water[siteID] == compDis->DustDevils.value().value) {
+							if (_DustDevils[siteID] == compDis->DustDevils.value().value) {
 								mover.move(siteID);
 							}
 							break;
 						case RequestData::MoreEqual:
-							if (_Water[siteID] >= compDis->DustDevils.value().value) {
+							if (_DustDevils[siteID] >= compDis->DustDevils.value().value) {
 								mover.move(siteID);
 							}
 							break;
@@ -600,17 +600,17 @@ public:
 						switch (compDis->DustStorms.value().comparitor)
 						{
 						case RequestData::LessEqual:
-							if (_Water[siteID] <= compDis->DustStorms.value().value) {
+							if (_DustStorms[siteID] <= compDis->DustStorms.value().value) {
 								mover.move(siteID);
 							}
 							break;
 						case RequestData::Equal:
-							if (_Water[siteID] == compDis->DustStorms.value().value) {
+							if (_DustStorms[siteID] == compDis->DustStorms.value().value) {
 								mover.move(siteID);
 							}
 							break;
 						case RequestData::MoreEqual:
-							if (_Water[siteID] >= compDis->DustStorms.value().value) {
+							if (_DustStorms[siteID] >= compDis->DustStorms.value().value) {
 								mover.move(siteID);
 							}
 							break;
@@ -627,17 +627,17 @@ public:
 						switch (compDis->Meteors.value().comparitor)
 						{
 						case RequestData::LessEqual:
-							if (_Water[siteID] <= compDis->Meteors.value().value) {
+							if (_Meteors[siteID] <= compDis->Meteors.value().value) {
 								mover.move(siteID);
 							}
 							break;
 						case RequestData::Equal:
-							if (_Water[siteID] == compDis->Meteors.value().value) {
+							if (_Meteors[siteID] == compDis->Meteors.value().value) {
 								mover.move(siteID);
 							}
 							break;
 						case RequestData::MoreEqual:
-							if (_Water[siteID] >= compDis->Meteors.value().value) {
+							if (_Meteors[siteID] >= compDis->Meteors.value().value) {
 								mover.move(siteID);
 							}
 							break;
@@ -654,17 +654,17 @@ public:
 						switch (compDis->ColdWaves.value().comparitor)
 						{
 						case RequestData::LessEqual:
-							if (_Water[siteID] <= compDis->ColdWaves.value().value) {
+							if (_ColdWaves[siteID] <= compDis->ColdWaves.value().value) {
 								mover.move(siteID);
 							}
 							break;
 						case RequestData::Equal:
-							if (_Water[siteID] == compDis->ColdWaves.value().value) {
+							if (_ColdWaves[siteID] == compDis->ColdWaves.value().value) {
 								mover.move(siteID);
 							}
 							break;
 						case RequestData::MoreEqual:
-							if (_Water[siteID] >= compDis->ColdWaves.value().value) {
+							if (_ColdWaves[siteID] >= compDis->ColdWaves.value().value) {
 								mover.move(siteID);
 							}
 							break;
@@ -917,26 +917,35 @@ public:
 		if (remvalues > 0) {
 			pages++;
 		}
-		pages++;
 
 		uint16_t pagereq = 1;
-		std::pair<uint16_t, uint16_t> focused_range = { 0,20 };
+		std::pair<uint16_t, uint16_t> focused_range = { 0, 19 };
 
 		// Get specific page?
 		if (page) {
 			pagereq = page.value();
 			// generate specific page json
-			if (page.value() > 0 && page.value() <= pages) {
-				focused_range.first = (page.value() - 1) * 20;
-				if (focused_range.first + 20 > valueIndexes.size()) {
-					focused_range.second = valueIndexes.size();
+			if (pagereq > 0 && pagereq <= pages) {
+				focused_range.first = (pagereq - 1) * 20;
+				if (focused_range.first + 20 < valueIndexes.size()) {
+					focused_range.second = focused_range.first + 19;
 				}
 				else {
-					focused_range.second = focused_range.first + 20;
+					focused_range.second = valueIndexes.size() - 1;
 				}
 			}
 			else {
 				*error_ptr_ptr = &RequestResponse::ErrorReqDataInvalid;
+				return false;
+			}
+		}
+		else if (pages == 1) {
+			// page 1
+			if (remvalues < 20 && remvalues > 0) {
+				focused_range.second = remvalues - 1;
+			}
+			else {
+				*error_ptr_ptr = &RequestResponse::ErrorProcessing;
 				return false;
 			}
 		}
