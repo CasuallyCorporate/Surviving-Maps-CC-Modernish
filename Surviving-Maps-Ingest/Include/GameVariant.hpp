@@ -231,7 +231,7 @@ public:
 			{
 				if (!compMap.value().is_object()) return false;
 				if (auto challRes = compMap.value().find("Challenge"); challRes != compMap.value().end()) {
-					convertToValueComparitor(&tmpComplex.MapChallenge, "Challenge", challRes.value());
+					convertToValueComparitor(&tmpComplex.MapChallenge, "Challenge", compMap.value());
 				}
 				if (auto mnRes = compMap.value().find("MapName"); mnRes != compMap.value().end()) {
 					if (!mnRes.value().is_array()) return false;
