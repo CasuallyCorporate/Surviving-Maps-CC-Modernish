@@ -111,14 +111,9 @@ public:
 			ret["MissingBreakthroughs"] = 0; // ????????????????????????????????????????????????????????????
 
 			json btrArray = json::array();
-			size_t arrayLen = retSite.Breakthroughs.bitset.size();
-			for (size_t i = 0; i < arrayLen; i++)
-			{
-				if (retSite.Breakthroughs.bitset[i]) {
-					if (auto retSYS = Breakthroughs::EnumToSYS.find((Breakthroughs::breakthrough_Enum)i); retSYS != Breakthroughs::EnumToSYS.end()) {
-						btrArray.emplace_back(retSYS->second);
-					}
-					else return false;
+			for (Breakthroughs::breakthrough_Enum btrenum : retSite.BreakthroughOrder) {
+				if (auto retSYS = Breakthroughs::EnumToSYS.find(btrenum); retSYS != Breakthroughs::EnumToSYS.end()) {
+					btrArray.emplace_back(retSYS->second);
 				}
 			}
 			ret["Breakthroughs"] = btrArray;
@@ -318,7 +313,7 @@ public:
 		}
 
 		// Do the search
-		return _Data->searchData(
+		return _Data->searchPageData(
 			retJson, error_ptr_ptr,
 			_variantName,
 			breakthroughFilters,
@@ -327,5 +322,24 @@ public:
 			sorting,
 			page
 		);
+	}
+
+	bool getCoordAsJson(const RequestData::CoordRequest* request, json* retJson, std::string** error_ptr_ptr) {
+		int siteid = 0;
+		if (_Data->getSiteIDFromCoord(request, &siteid)) {
+			// create/return the json
+			if (getSiteAsJson(siteid, retJson)) {
+				return true;
+			}
+			else {
+				*error_ptr_ptr = &RequestResponse::ErrorProcessing;
+				return false;
+			}
+		}
+		else {
+			*error_ptr_ptr = &RequestResponse::ErrorReqDataInvalid;
+			return false;
+		}
+
 	}
 };

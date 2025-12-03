@@ -32,6 +32,7 @@ namespace Sites {
 		int Temperature;
 
 		Breakthroughs::btrData Breakthroughs;
+		std::array<Breakthroughs::breakthrough_Enum, 13> BreakthroughOrder;
 	};
 
 	class Site {
@@ -61,7 +62,6 @@ namespace Sites {
 
 		// Breakthroughs
 		std::map<Header::Headers, Breakthroughs::breakthrough_Enum>* _breakthroughs = nullptr;
-		std::array<Breakthroughs::breakthrough_Enum, 13> _cachedBreakthroughs;
 		Breakthroughs::btrData _returnBreakthroughs;
 
 
@@ -70,7 +70,7 @@ namespace Sites {
 
 			data = other.data;
 
-			_cachedBreakthroughs = other._cachedBreakthroughs;
+			data.BreakthroughOrder = other.data.BreakthroughOrder;
 			// _cachedBreakthroughs should refresh on it's own
 			// No defaults
 		}
@@ -79,7 +79,7 @@ namespace Sites {
 #pragma warning( disable : 26478)
 			data = std::move(other.data);
 
-			_cachedBreakthroughs = std::move(other._cachedBreakthroughs);
+			data.BreakthroughOrder = std::move(other.data.BreakthroughOrder);
 			// _cachedBreakthroughs should refresh on it's own
 			// No defaults
 #pragma warning(pop)
@@ -371,17 +371,13 @@ namespace Sites {
 			btrIt = site->_breakthroughs->find((Header::Headers)i);
 			if (btrIt != site->_breakthroughs->end())
 			{
-				site->_cachedBreakthroughs[cachedIndex] = btrIt->second;
+				site->data.BreakthroughOrder[cachedIndex] = btrIt->second;
 				cachedIndex++;
 			}
 		}
 		delete site->_breakthroughs;
 		site->_breakthroughs = nullptr;
 		return true;
-	}
-
-	static std::array<Breakthroughs::breakthrough_Enum, 13>* getAllBreakthroughs(Site* site) {
-		return &site->_cachedBreakthroughs;
 	}
 #pragma endregion
 }

@@ -103,6 +103,51 @@ bool checkRequestPage(json& reqjson) {
 	return false;
 }
 
+bool checkCoordJson(json& reqjson, RequestData::CoordRequest* coordReq) {
+	if (auto resp = reqjson.find("VariantSystem"); resp != reqjson.end()) {
+		if (!resp.value().is_string()) {
+			return false;
+		}
+	} else return false;
+	if (auto coordResp = reqjson.find("Coord"); coordResp != reqjson.end()) {
+		if (!coordResp.value().is_object()) {
+			return false;
+		}
+		if (auto NSnum = coordResp.value().find("NSNum"); NSnum != coordResp.value().end()) {
+			if (!NSnum.value().is_number()) {
+				return false;
+			}
+			coordReq->NSNum = NSnum.value();
+		} else return false;
+		if (auto NSchar = coordResp.value().find("NSChar"); NSchar != coordResp.value().end()) {
+			if (!NSchar.value().is_string()) {
+				return false;
+			}
+			if (NSchar.value() == "N" || NSchar.value() == "S") {
+				std::string ch = NSchar.value();
+				coordReq->NSChar = ch[0];
+			} else return false;
+		} else return false;
+		if (auto EWnum = coordResp.value().find("EWNum"); EWnum != coordResp.value().end()) {
+			if (!EWnum.value().is_number()) {
+				return false;
+			}
+			coordReq->EWNum = EWnum.value();
+		} else return false;
+		if (auto EWchar = coordResp.value().find("EWChar"); EWchar != coordResp.value().end()) {
+			if (!EWchar.value().is_string()) {
+				return false;
+			}
+			if (EWchar.value() == "E" || EWchar.value() == "W") {
+				std::string ch = EWchar.value();
+				coordReq->EWChar = ch[0];
+			} else return false;
+		} else return false;
+	} else return false;
+
+	return true;
+}
+
 int main(/*int args, char* argv[]*/) {
 	std::cout << "<!! Setting up cached/static json responses !!>\n";
 
@@ -293,6 +338,30 @@ int main(/*int args, char* argv[]*/) {
 			res.set_content(RequestResponse::ErrorJsonParseResponse, MimeTypeJson);
 			return;
 		}
+
+		RequestData::CoordRequest coordReq;
+		if (checkCoordJson(reqJson, &coordReq)) {
+			auto sysResp = _variantMap.find(reqJson["VariantSystem"]);
+			if (sysResp != _variantMap.end()) {
+				json pageJson;
+				std::string* error_ptr = nullptr;
+				if (sysResp->second->getCoordAsJson(&coordReq, &pageJson, &error_ptr)) {
+					res.status = httplib::StatusCode::OK_200;
+					res.set_content(pageJson.dump(), MimeTypeJson);
+					return;
+				}
+				if (error_ptr) {
+					res.status = httplib::StatusCode::InternalServerError_500;
+					res.set_content(*error_ptr, MimeTypeJson);
+					return;
+				}
+				/* Fall through generic 500 */
+			}
+		}
+
+		res.status = httplib::StatusCode::InternalServerError_500;
+		res.set_content(RequestResponse::ErrorJsonParseResponse, MimeTypeJson);
+		return;
 	});
 
 	// setup stop signals

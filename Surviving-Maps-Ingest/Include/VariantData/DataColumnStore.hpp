@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <vector>
 #include <set>
 
@@ -64,6 +65,7 @@ private:
 
 	// Breaktthoughs
 	Breakthroughs::btrData* _Breakthoughs;
+	std::array<Breakthroughs::breakthrough_Enum, 13>* _BreakthroughOrder;
 
 	// default "every index" vector
 	std::vector<uint16_t> _everyIndex;
@@ -183,6 +185,7 @@ public:
 			_NamedLocationDictIndices = new uint8_t[_maxEntries];
 
 			_Breakthoughs = new Breakthroughs::btrData[_maxEntries];
+			_BreakthroughOrder = new std::array<Breakthroughs::breakthrough_Enum, 13>[_maxEntries];
 
 			_everyIndex.reserve(_maxEntries);
 			for (uint16_t i = 0; i < _maxEntries; i++)
@@ -245,7 +248,8 @@ public:
 		_DisastersTot[_currIndex] = tmpSite->data.Disasters[0] + tmpSite->data.Disasters[1] + tmpSite->data.Disasters[2] + tmpSite->data.Disasters[3];
 
 		_Breakthoughs[_currIndex] = Breakthroughs::btrData{};
-		Breakthroughs::btrData::setBreakthroughSet(&_Breakthoughs[_currIndex], &tmpSite->_cachedBreakthroughs);
+		Breakthroughs::btrData::setBreakthroughSet(&_Breakthoughs[_currIndex], &tmpSite->data.BreakthroughOrder);
+		_BreakthroughOrder[_currIndex] = tmpSite->data.BreakthroughOrder;
 
 		_currIndex++;
 		return true;
@@ -334,6 +338,7 @@ public:
 		tmpSite->Disasters[3] = _ColdWaves[SiteIndex];
 
 		tmpSite->Breakthroughs = _Breakthoughs[SiteIndex];
+		tmpSite->BreakthroughOrder = _BreakthroughOrder[SiteIndex];
 
 		return true;
 	}
@@ -343,7 +348,7 @@ public:
 	}
 
 	// Search the data
-	bool searchData(
+	bool searchPageData(
 		json* retJson, std::string** error_ptr_ptr,
 		std::string variantName,
 		std::optional<std::set<Breakthroughs::breakthrough_Enum>> breakthroughFilters,
@@ -1015,5 +1020,25 @@ public:
 
 		*retJson = returnPage;
 		return true;
+	}
+
+	bool getSiteIDFromCoord(const RequestData::CoordRequest* req, int* retSiteID) {
+		std::vector<uint16_t> valueIndexes;
+
+		for (size_t i = 0; i < _maxEntries; i++)
+		{
+			if (_Latitiude[i] == req->NSNum) {
+				if (_Longitude[i] == req->EWNum) {
+					if (_LatitudeNS[i] == req->NSChar) {
+						if (_LongitudeEW[i] == req->EWChar) {
+							*retSiteID = i;
+							return true;
+						}
+					}
+				}
+			}
+		}
+
+		return false;
 	}
 };

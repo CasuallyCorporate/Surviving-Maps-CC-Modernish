@@ -132,4 +132,12 @@ namespace RequestData {
 			return _MovedAtAll;
 		}
 	};
+
+	struct CoordRequest {
+		// VariantSystem
+		int NSNum;
+		char NSChar;
+		int EWNum;
+		char EWChar;
+	};
 }
