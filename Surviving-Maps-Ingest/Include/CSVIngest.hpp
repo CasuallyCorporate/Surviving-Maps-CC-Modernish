@@ -25,42 +25,29 @@ private:
 
 	void csvLineToVector(std::string* str, std::vector<std::string>* vect) {
 		vect->clear();
-		int begin = 0, len = 0, endStr = str->size() - 1;
-		for (size_t i = 0; i <= endStr; i++) {
-			if (str->at(i) == ',') {
-				if (i == begin) {
-					// csv entry empty
+		auto strIt = str->begin(), beg_it = str->begin();
+		std::string_view view(strIt, strIt);
+		while (strIt != str->end()) {
+			if (*strIt == ',') {
+				view = std::string_view(beg_it, strIt);
+				if (std::distance(beg_it, strIt) <= 1) {
 					vect->emplace_back("");
 				}
 				else {
-					std::string_view _lineitem = std::string_view(str->data() + begin, i - begin);
-					if (_lineitem.ends_with(' ')) {
-						// Need to remove any trailing spaces
-						int less = 1;
-						while (_lineitem.ends_with(' '))
-						{
-							_lineitem = std::string_view(str->data() + begin, i - (begin + less));
-							less++;
-						}
-					}
-					vect->emplace_back(_lineitem);
+					vect->emplace_back(view);
 				}
-				begin = i + 1;
+				++strIt;
+				beg_it = strIt;
 			}
+			else ++strIt;
 		}
-		if (vect->size() > 0)
-		{ // Add the last 
-			std::string_view _lineitem = std::string_view(str->data() + begin, (endStr + 1) - begin);
-			if (_lineitem.ends_with(' ')) {
-				// Need to remove any trailing spaces
-				int less = 1;
-				while (_lineitem.ends_with(' '))
-				{
-					_lineitem = std::string_view(str->data() + begin, (endStr + 1) - (begin + less));
-					less++;
-				}
-			}
-			vect->emplace_back(_lineitem);
+		// last one
+		if (std::distance(beg_it, strIt) <= 1) {
+			vect->emplace_back("");
+		}
+		else {
+			view = std::string_view(beg_it, strIt);
+			vect->emplace_back(view);
 		}
 	}
 	bool stringToInt(std::string* string, int* num) {
@@ -107,6 +94,8 @@ public:
 			return false;
 		}
 
+		std::cout << "\ninitial line: " << line << "\n";
+
 		std::vector<std::string> lineItems;
 		csvLineToVector(&line, &lineItems);
 
@@ -137,6 +126,11 @@ public:
 		if (requiredHeaders.size() != 0)
 		{
 			_errors->setErrorMessage("Minimum headers do not exist");
+			for (auto item : requiredHeaders) {
+				if (auto hdrres = Header::HeaderToString.find(item); hdrres != Header::HeaderToString.end()) {
+					std::cout << "Remaining: " << hdrres->second << "\n";
+				}
+			}
 			return false;
 		}
 
