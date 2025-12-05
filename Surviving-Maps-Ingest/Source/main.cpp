@@ -164,12 +164,12 @@ int main(/*int args, char* argv[]*/) {
 	std::cout << "<!! Setting variants !!>\n";
 
 	// Insert all variants to process
-	_variantMap["STANDARD"] = std::make_unique<GameVariant>("STANDARD", "CSVMapData/MapData Breakthroughs.csv", &_error_obj);
-	_variantMap["GREEN_PLANET"] = std::make_unique<GameVariant>("GREEN_PLANET", "CSVMapData/MapData Breakthroughs GP.csv", &_error_obj);
-	_variantMap["BELOW_BEYOND"] = std::make_unique<GameVariant>("BELOW_BEYOND", "CSVMapData/MapData Breakthroughs BB.csv", &_error_obj);
-	_variantMap["BEYOND_GREEN"] = std::make_unique<GameVariant>("BEYOND_GREEN", "CSVMapData/MapData Breakthroughs GP BB.csv", &_error_obj);
-	_variantMap["TITO_GREEN_PLANET"] = std::make_unique<GameVariant>("TITO_GREEN_PLANET", "CSVMapData/MapData Tito GP.csv", &_error_obj);
-	_variantMap["EVANS_GREEN_PLANET"] = std::make_unique<GameVariant>("EVANS_GREEN_PLANET", "CSVMapData/MapData Evans GP.csv", &_error_obj);
+	_variantMap["STANDARD"] = std::make_unique<GameVariant>("STANDARD", "./CSVMapData/MapData Breakthroughs.csv", &_error_obj);
+	_variantMap["GREEN_PLANET"] = std::make_unique<GameVariant>("GREEN_PLANET", "./CSVMapData/MapData Breakthroughs GP.csv", &_error_obj);
+	_variantMap["BELOW_BEYOND"] = std::make_unique<GameVariant>("BELOW_BEYOND", "./CSVMapData/MapData Breakthroughs BB.csv", &_error_obj);
+	_variantMap["BEYOND_GREEN"] = std::make_unique<GameVariant>("BEYOND_GREEN", "./CSVMapData/MapData Breakthroughs GP BB.csv", &_error_obj);
+	_variantMap["TITO_GREEN_PLANET"] = std::make_unique<GameVariant>("TITO_GREEN_PLANET", "./CSVMapData/MapData Tito GP.csv", &_error_obj);
+	_variantMap["EVANS_GREEN_PLANET"] = std::make_unique<GameVariant>("EVANS_GREEN_PLANET", "./CSVMapData/MapData Evans GP.csv", &_error_obj);
 
 	std::cout << "<!! Starting variants' ingest !!>\n";
 	// process all map data into their variants

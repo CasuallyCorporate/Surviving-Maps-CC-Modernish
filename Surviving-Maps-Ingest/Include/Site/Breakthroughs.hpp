@@ -7,7 +7,7 @@
 
 namespace Breakthroughs {
 
-    const enum breakthrough_Enum: uint8_t {
+    enum breakthrough_Enum: uint8_t {
         ADVANCED_DRONE_DRIVE = 0,
         ALIEN_IMPRINTS,
         ANCIENT_TERRAFORMING_DEVICE,
