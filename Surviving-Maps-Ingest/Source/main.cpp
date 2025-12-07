@@ -173,7 +173,7 @@ int main(/*int args, char* argv[]*/) {
 
 	std::cout << "<!! Starting variants' ingest !!>\n";
 	// process all map data into their variants
-	std::map<std::string, std::unique_ptr<GameVariant>>::iterator it;
+	std::map<std::string, std::unique_ptr<GameVariant>>::iterator it = _variantMap.begin();
 	for (it = _variantMap.begin(); it != _variantMap.end(); it++) {
 		// Ingest CSV
 		std::cout << "<--- Ingesting " << it->first << " -->" << std::endl;

@@ -58,7 +58,7 @@ public:
 		if (std::filesystem::exists(*_csvURL))
 		{
 			CSVIngest csvIngestor = CSVIngest(_csvURL->generic_string(), _error_obj);
-			if (!csvIngestor.populateData(_Data.get()))
+			if (!csvIngestor.populateData(_Data.get(), &coutStream))
 			{
 				coutStream << "Failed to populate data for: " << _csvURL->string() << "\n";
 				coutStream << "With error: " << _error_obj->getErrorString() << std::endl;

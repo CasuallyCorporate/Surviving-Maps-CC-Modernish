@@ -23,49 +23,49 @@ private:
 	bool _sitesSet = false;
 
 	// Latitude
-	char* _LatitudeNS;
-	int* _Latitiude;
+	char* _LatitudeNS = nullptr;
+	int* _Latitiude = nullptr;
 
 	// Longitude
-	char* _LongitudeEW;
-	int* _Longitude;
+	char* _LongitudeEW = nullptr;
+	int* _Longitude = nullptr;
 
 	// MapName
-	std::vector<std::string>* _MapNameTemporary;
-	uint8_t* _MapNameDictIndices;
+	std::vector<std::string>* _MapNameTemporary = nullptr;
+	uint8_t* _MapNameDictIndices = nullptr;
 
 	// Named Location
-	std::vector<std::string>* _NamedLocationTemporary;
-	uint8_t* _NamedLocationDictIndices;
+	std::vector<std::string>* _NamedLocationTemporary = nullptr;
+	uint8_t* _NamedLocationDictIndices = nullptr;
 
 	// Topography
-	std::vector<std::string>* _TopographyTemporary;
-	uint8_t* _TopographyDictIndices;
+	std::vector<std::string>* _TopographyTemporary = nullptr;
+	uint8_t* _TopographyDictIndices = nullptr;
 
 	// Difficulty
-	std::vector<int>* _DifficultyTemporary;
-	uint8_t* _DifficultyDictIndices;
+	std::vector<int>* _DifficultyTemporary = nullptr;
+	uint8_t* _DifficultyDictIndices = nullptr;
 
-	int* _Altitude;
-	int* _Temperature;
+	int* _Altitude = nullptr;
+	int* _Temperature = nullptr;
 
 	// Basic Resources
-	uint8_t* _ResourcesTot;
-	uint8_t* _Metals;
-	uint8_t* _RareMetals;
-	uint8_t* _Concrete;
-	uint8_t* _Water;
+	uint8_t* _ResourcesTot = nullptr;
+	uint8_t* _Metals = nullptr;
+	uint8_t* _RareMetals = nullptr;
+	uint8_t* _Concrete = nullptr;
+	uint8_t* _Water = nullptr;
 
 	// Basic Disasters
-	uint8_t* _DisastersTot;
-	uint8_t* _DustDevils;
-	uint8_t* _DustStorms;
-	uint8_t* _Meteors;
-	uint8_t* _ColdWaves;
+	uint8_t* _DisastersTot = nullptr;
+	uint8_t* _DustDevils = nullptr;
+	uint8_t* _DustStorms = nullptr;
+	uint8_t* _Meteors = nullptr;
+	uint8_t* _ColdWaves = nullptr;
 
 	// Breaktthoughs
-	Breakthroughs::btrData* _Breakthoughs;
-	std::array<Breakthroughs::breakthrough_Enum, 13>* _BreakthroughOrder;
+	Breakthroughs::btrData* _Breakthoughs = nullptr;
+	std::array<Breakthroughs::breakthrough_Enum, 13>* _BreakthroughOrder = nullptr;
 
 	// default "every index" vector
 	std::vector<uint16_t> _everyIndex;
@@ -107,44 +107,44 @@ public:
 	}
 	~DataColumnStore() {
 		// Latitude
-		delete _LatitudeNS;
-		delete _Latitiude;
+		if (_LatitudeNS) delete _LatitudeNS;
+		if (_Latitiude) delete _Latitiude;
 
 		// Longitude
-		delete _LongitudeEW;
-		delete _Longitude;
+		if (_LongitudeEW) delete _LongitudeEW;
+		if (_Longitude) delete _Longitude;
 
 		// MapName
-		delete _MapNameDictIndices;
+		if (_MapNameDictIndices) delete _MapNameDictIndices;
 
 		// Named Location
-		delete _NamedLocationDictIndices;
+		if (_NamedLocationDictIndices) delete _NamedLocationDictIndices;
 
 		// Topography
-		delete _TopographyDictIndices;
+		if (_TopographyDictIndices) delete _TopographyDictIndices;
 
 		// Difficulty
-		delete _DifficultyDictIndices;
+		if (_DifficultyDictIndices) delete _DifficultyDictIndices;
 
-		delete _Altitude;
-		delete _Temperature;
+		if (_Altitude) delete _Altitude;
+		if (_Temperature) delete _Temperature;
 
 		// Basic Resources
-		delete _ResourcesTot;
-		delete _Metals;
-		delete _RareMetals;
-		delete _Concrete;
-		delete _Water;
+		if (_ResourcesTot) delete _ResourcesTot;
+		if (_Metals) delete _Metals;
+		if (_RareMetals) delete _RareMetals;
+		if (_Concrete) delete _Concrete;
+		if (_Water) delete _Water;
 
 		// Basic Disasters
-		delete _DisastersTot;
-		delete _DustDevils;
-		delete _DustStorms;
-		delete _Meteors;
-		delete _ColdWaves;
+		if (_DisastersTot) delete _DisastersTot;
+		if (_DustDevils) delete _DustDevils;
+		if (_DustStorms) delete _DustStorms;
+		if (_Meteors) delete _Meteors;
+		if (_ColdWaves) delete _ColdWaves;
 
 		// Breaktthoughs
-		delete _Breakthoughs;
+		if (_Breakthoughs) delete _Breakthoughs;
 	}
 
 	bool setCollectionMax(size_t totalEntries) {

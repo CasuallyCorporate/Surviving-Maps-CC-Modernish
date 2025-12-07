@@ -30,10 +30,28 @@ private:
 		while (strIt != str->end()) {
 			if (*strIt == ',') {
 				view = std::string_view(beg_it, strIt);
-				if (std::distance(beg_it, strIt) <= 1) {
+				if (std::distance(beg_it, strIt) == 0) {
 					vect->emplace_back("");
 				}
 				else {
+					// pre-parse out non valid characters from end
+					for (int i = view.size() - 1; i >= 0; i--)
+					{
+						char currChar = view[i];
+
+						if (currChar < 0x21 || currChar > 0x7A) {
+							if (currChar != -62 && currChar != -80) {
+								if (currChar == ' ') {
+									view.remove_suffix(1);
+									continue;
+								}
+								view.remove_suffix(1);
+								continue;
+							}
+						}
+						// Reached valid characters
+						break;
+					}
 					vect->emplace_back(view);
 				}
 				++strIt;
@@ -42,11 +60,29 @@ private:
 			else ++strIt;
 		}
 		// last one
-		if (std::distance(beg_it, strIt) <= 1) {
+		if (std::distance(beg_it, strIt) == 0) {
 			vect->emplace_back("");
 		}
 		else {
 			view = std::string_view(beg_it, strIt);
+			// pre-parse out non valid characters from end
+			for (int i = view.size() - 1; i >= 0; i--)
+			{
+				char currChar = view[i];
+
+				if (currChar < 0x21 || currChar > 0x7A) {
+					if (currChar != -62 && currChar != -80) {
+						if (currChar == ' ') {
+							view.remove_suffix(1);
+							continue;
+						}
+						view.remove_suffix(1);
+						continue;
+					}
+				}
+				// Reached valid characters
+				break;
+			}
 			vect->emplace_back(view);
 		}
 	}
@@ -80,7 +116,7 @@ public:
 		_errors = error_obj;
 	}
 
-	bool populateData(DataColumnStore* datFlat) {
+	bool populateData(DataColumnStore* datFlat, std::osyncstream* coutStream) {
 		std::ifstream csvFile(_csvURL);
 		std::string line;
 		// First line is csv header
@@ -94,22 +130,17 @@ public:
 			return false;
 		}
 
-		std::cout << "\ninitial line: " << line << "\n";
-
 		std::vector<std::string> lineItems;
 		csvLineToVector(&line, &lineItems);
-
 		// Parse header to column map
 		std::map<Header::Headers, int> csvHeaderColumn;
 		int itemIndex = 0;
 		for (std::string column : lineItems) {
-
 			if (auto search = Header::csvToHeader.find(column); search != Header::csvToHeader.end()) {
 				csvHeaderColumn[search->second] = itemIndex;
 			}
 			itemIndex++;
 		}
-
 		std::vector<Header::Headers> requiredHeaders = Header::minRequiredHeaders;
 		std::map<Header::Headers, int>::iterator mapIt;
 		for (mapIt = csvHeaderColumn.begin(); mapIt != csvHeaderColumn.end(); mapIt++) {
@@ -128,7 +159,7 @@ public:
 			_errors->setErrorMessage("Minimum headers do not exist");
 			for (auto item : requiredHeaders) {
 				if (auto hdrres = Header::HeaderToString.find(item); hdrres != Header::HeaderToString.end()) {
-					std::cout << "Remaining: " << hdrres->second << "\n";
+					*coutStream << "Remaining: " << hdrres->second << "\n";
 				}
 			}
 			return false;
