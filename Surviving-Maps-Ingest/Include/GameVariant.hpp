@@ -103,8 +103,8 @@ public:
 			ret["Meteors"] = retSite.Disasters.at(2);
 			ret["ColdWaves"] = retSite.Disasters.at(3);
 
-			ret["Metals"] = retSite.Resources.at(0);
-			ret["RareMetals"] = retSite.Resources.at(1);
+			ret["Metal"] = retSite.Resources.at(0);
+			ret["RareMetal"] = retSite.Resources.at(1);
 			ret["Concrete"] = retSite.Resources.at(2);
 			ret["Water"] = retSite.Resources.at(3);
 
