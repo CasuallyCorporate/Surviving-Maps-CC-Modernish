@@ -141,7 +141,7 @@ export const DropBreakthrough = (props: DropdownProps) => {
         if (props.returnSimpleRef) {
             // Overwrite/set the current list
             if(currList.length > 0) {
-                props.returnSimpleRef.current.BreakthroughFilters = {all: currList};
+                props.returnSimpleRef.current.BreakthroughFilters = currList;
             } else {
                 props.returnSimpleRef.current.BreakthroughFilters = undefined;
             }

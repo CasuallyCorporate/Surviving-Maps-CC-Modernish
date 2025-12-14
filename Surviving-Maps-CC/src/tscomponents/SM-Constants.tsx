@@ -353,10 +353,6 @@ export enum ComparitorState {
 }
 
 /* Simple Requests */
-export interface BreakthroughRequest {
-    all: string[];
-}
-
 export interface ValueRequest {
     Number: number;
     comparitor: ComparitorState; // True less than number, False more than number
@@ -366,7 +362,7 @@ export interface SimpleRequest {
     Variant?: string;
     Resources?: ValueRequest;
     Disasters?: ValueRequest;
-    BreakthroughFilters?: BreakthroughRequest;
+    BreakthroughFilters?: string[];
 }
 
 /* Complex Requests */
