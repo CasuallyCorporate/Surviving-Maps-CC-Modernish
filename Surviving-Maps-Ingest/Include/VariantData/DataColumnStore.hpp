@@ -994,10 +994,10 @@ public:
 				tmpSiteObject["ID"] = siteIndex;
 				std::string coordinate;
 				coordinate += std::to_string(tmpSite.Latitude);
-				coordinate += tmpSite.LatNS;
+				coordinate += std::string{ tmpSite.LatNS };
 				coordinate += ":";
 				coordinate += std::to_string(tmpSite.Longitude);
-				coordinate += tmpSite.LongEW;
+				coordinate += std::string{ tmpSite.LongEW };
 				tmpSiteObject["Coordinates"] = coordinate;
 				tmpSiteObject["DisastersTot"] = tmpSite.DisastersTot;
 				tmpSiteObject["DustDevils"] = tmpSite.Disasters[0];

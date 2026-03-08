@@ -87,9 +87,9 @@ public:
 			ret["SiteID"] = siteid;
 			ret["Coordinate"] = {
 				{"NSNum", retSite.Latitude},
-				{"NSChar", retSite.LatNS},
+				{"NSChar", std::string{retSite.LatNS}},
 				{"EWNum", retSite.Longitude},
-				{"EWChar", retSite.LongEW}
+				{"EWChar", std::string{retSite.LongEW}}
 			};
 			ret["NamedLandingSYS"] = retSite.MapLocation;
 			ret["TopographySYS"] = retSite.MapTopography;
