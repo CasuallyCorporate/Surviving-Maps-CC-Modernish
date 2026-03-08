@@ -97,10 +97,12 @@ export default function appMain() {
         if(lastSearchParameters.current === JSON.stringify(returnFullRequest("noSet"))) {
             //Last search params, and current params are the same
             //setSearchChanged to false
+            console.debug("Last and new search params are the same");
             setSearchValuesChanged({toggle: !searchValuesChanged.toggle, changed: false});
         } else {
             //Last search params, and current params are different
             //setSearchChanged to true
+            console.debug("Last and new search params are different");
             setSearchValuesChanged({toggle: !searchValuesChanged.toggle, changed: true});
         }
     }

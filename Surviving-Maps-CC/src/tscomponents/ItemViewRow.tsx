@@ -290,8 +290,7 @@ const DisplaySite = (props: DisplaySiteProps) => {
                 break;
             }
         }
-        console.log("DisplaySite: findNamedLandingNice: Did not find variant");
-        return "Error";
+        return "Unnamed";
     }
 
     function localSendToList() {

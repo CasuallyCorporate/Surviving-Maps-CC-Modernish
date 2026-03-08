@@ -141,7 +141,7 @@ export const DropBreakthrough = (props: DropdownProps) => {
         if (props.returnSimpleRef) {
             // Overwrite/set the current list
             if(currList.length > 0) {
-                props.returnSimpleRef.current.BreakthroughFilters = {all: currList};
+                props.returnSimpleRef.current.BreakthroughFilters = currList;
             } else {
                 props.returnSimpleRef.current.BreakthroughFilters = undefined;
             }
@@ -209,9 +209,21 @@ export const DropResources = (props: DropdownProps) => {
 
     function toggleLessMore() {
         let compState = getComparitor;
-        if (compState == ComparitorState.LessThan) {setComparitor(ComparitorState.EquealTo)}
-        else if (compState == ComparitorState.EquealTo) {setComparitor(ComparitorState.MoreThan)}
-        else if (compState == ComparitorState.MoreThan) {setComparitor(ComparitorState.LessThan)}
+        if (compState == ComparitorState.LessThan) {compState = ComparitorState.EquealTo}
+        else if (compState == ComparitorState.EquealTo) {compState = ComparitorState.MoreThan}
+        else if (compState == ComparitorState.MoreThan) {compState = ComparitorState.LessThan}
+
+        setComparitor(compState);
+
+        if(props.returnSimpleRef && props.returnSimpleRef.current.Resources) {
+            if(props.returnSimpleRef.current.Resources.Number) {
+                props.returnSimpleRef.current.Resources = {
+                    ...props.returnSimpleRef.current.Resources,
+                    comparitor: compState
+                }
+            }
+        }
+        props.selectionChanged();
     }
 
     function blankSearch() {
@@ -225,7 +237,7 @@ export const DropResources = (props: DropdownProps) => {
 
     function selectionChanged(selectedList: number[]) {
         if(props.returnSimpleRef) {
-            props.returnSimpleRef.current.Resources = { Number: selectedList[0], comparitor: ComparitorState.EquealTo };
+            props.returnSimpleRef.current.Resources = { Number: selectedList[0], comparitor: getComparitor };
         } else {
             refError("DropResources");
         }
@@ -259,9 +271,21 @@ export const DropDisasters = (props: DropdownProps) => {
 
     function toggleLessMore() {
         let compState = getComparitor;
-        if (compState == ComparitorState.LessThan) {setComparitor(ComparitorState.EquealTo)}
-        else if (compState == ComparitorState.EquealTo) {setComparitor(ComparitorState.MoreThan)}
-        else if (compState == ComparitorState.MoreThan) {setComparitor(ComparitorState.LessThan)}
+        if (compState == ComparitorState.LessThan) {compState = ComparitorState.EquealTo}
+        else if (compState == ComparitorState.EquealTo) {compState = ComparitorState.MoreThan}
+        else if (compState == ComparitorState.MoreThan) {compState = ComparitorState.LessThan}
+
+        if(props.returnSimpleRef && props.returnSimpleRef.current.Disasters) {
+            if(props.returnSimpleRef.current.Disasters.Number) {
+                props.returnSimpleRef.current.Disasters = {
+                    ...props.returnSimpleRef.current.Disasters,
+                    comparitor: compState
+                }
+            }
+        }
+        props.selectionChanged();
+
+        setComparitor(compState);
     }
 
     function blankSearch() {
@@ -275,7 +299,7 @@ export const DropDisasters = (props: DropdownProps) => {
 
     function selectionChanged(selectedList: number[]) {
         if(props.returnSimpleRef) {
-            props.returnSimpleRef.current.Disasters = { Number: selectedList[0], comparitor: ComparitorState.EquealTo };
+            props.returnSimpleRef.current.Disasters = { Number: selectedList[0], comparitor: getComparitor };
         } else {
             refError("DropDisasters");
         }

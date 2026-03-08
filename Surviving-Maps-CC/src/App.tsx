@@ -24,6 +24,20 @@ function App() {
   const [modalPageContents, setModalPageContents] = useState("");
   const APIURL: string = "/motd";
 
+  interface FAQContents {
+    items?: string[];
+    version?: string;
+    title?: string;
+  }
+  interface FAQSection {
+    heading?: string;
+    subheading?: string;
+    contents?: FAQContents[];
+  }
+  interface FAQResponse {
+    sections?: FAQSection[];
+  }
+
   async function fetchModPage(apiURL: string, pageStr: string) {
 
     if (pageStr == modalLastFetchName) {
@@ -43,8 +57,48 @@ function App() {
     );
   
     if(response.status == 200) {
-      let pageson = await response.json();
-      setModalPageContents(pageson[1].PageData);
+      let pageson: FAQResponse = await response.json();
+      let contentstr: string = "";
+
+      if (pageson.sections) {
+        for (const section of pageson.sections) {
+          if (section.heading) {
+            contentstr += "<h1>";
+            contentstr += section.heading;
+            contentstr += "</h1>";
+          }
+          if (section.subheading) {
+            contentstr += "<h2>";
+            contentstr += section.subheading;
+            contentstr += "</h2>";
+          }
+          if (section.contents) {
+            for (const contitem of section.contents) {
+              if (contitem.version) {
+                contentstr += "<h3><u>Version: ";
+                contentstr += contitem.version;
+                contentstr += "</u></h3>";
+              }
+              if (contitem.title) {
+                contentstr += "<h3><u>";
+                contentstr += contitem.title;
+                contentstr += "</u></h3>";
+              }
+              if (contitem.items) {
+                contentstr += "<ul>";
+                for (const item of contitem.items) {
+                  contentstr += "<li>";
+                  contentstr += item;
+                  contentstr += "</li>";
+                }
+                contentstr += "</ul>";
+              }
+            }
+          }
+        }
+      }
+
+      setModalPageContents(contentstr);
       setModalLastFetchName(pageStr);
       return;
     }
