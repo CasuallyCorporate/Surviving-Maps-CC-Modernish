@@ -151,7 +151,7 @@ function App() {
           <a href="https://survivingmars.paradoxwikis.com/Surviving_Mars_Wiki" className="navbar-brand">
             <img src={survivingLogo} className="logo survivingmars" alt="Surviving Mars Logo" />
           </a>
-          <a className="navbar-brand" href="/">Surviving Maps.cc</a>
+          <a className="navbar-brand" href="/">Surviving Maps.cc <b>: Original</b></a>
           <button aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation" className="navbar-toggler"
                     data-bs-target="#navbarNavDropdown" data-bs-toggle="collapse" type="button">
             <span className="navbar-toggler-icon"></span>
