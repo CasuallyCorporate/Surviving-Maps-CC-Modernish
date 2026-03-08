@@ -48,7 +48,7 @@ export const SearchButtonRow = (props: ButtonRowProps) => {
                 //Set btn FAILED
                 setButtonState(ButtonState.FAILED);
                 let pageson: PageResponse = await response.json();
-                props.returnsResults(pageson);
+                // props.returnsResults(pageson); // Commented to prevent an empty return
                 if(pageson.Response) {
                     setTooltTip(pageson.Response);
                 } else {
