@@ -159,7 +159,10 @@ function App() {
           <div className="collapse navbar-collapse" id="navbarNavDropdown">
             <ul className="navbar-nav">
               <li className="nav-item" id="Home">
-                <a className="nav-link" href="/">Home</a>
+                <a className="nav-link" href="https://original.surviving-maps.cc/">Home</a>
+              </li>
+              <li>
+                <a className="nav-link" href="https://surviving-maps.cc/">[Relaunched]</a>
               </li>
               <li className="nav-item" id="FAQ">
                 <a className="nav-link" onClick={() => openModal("FAQ")}>FAQ</a>

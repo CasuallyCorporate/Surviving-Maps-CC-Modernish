@@ -134,10 +134,23 @@ button:focus, button:focus-visible {
   top: 0;
   margin: 0;
   font-size: 1.75rem;
+}
+
+.search a h3, .search a div {
   cursor: pointer;
 }
+
 .search a {
   color: #242424;
+  padding-bottom: 5px;
+}
+
+.search h3 {
+  border: 2px solid rgba(36, 36, 36, 0.4);
+  border-style: solid solid solid none;
+  border-radius: 0 12px 12px 0;
+  padding: 0 5px 2px 2px;
+  background: linear-gradient(to bottom, rgba(230, 230, 230, 0.2) 0%, rgba(0, 0, 0, 0.2) 100%);
 }
 
 .search #singleSelect {
